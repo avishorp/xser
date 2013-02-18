@@ -1,4 +1,4 @@
-EESchema Schematic File Version 2  date Sat 16 Feb 2013 12:12:34 AM IST
+EESchema Schematic File Version 2  date Mon 18 Feb 2013 11:00:06 PM IST
 LIBS:power
 LIBS:device
 LIBS:transistors
@@ -37,7 +37,7 @@ $Descr A4 11700 8267
 encoding utf-8
 Sheet 1 1
 Title "xser"
-Date "15 feb 2013"
+Date "18 feb 2013"
 Rev "1"
 Comp ""
 Comment1 ""
@@ -399,7 +399,7 @@ $EndComp
 Text Label 7500 1900 0    60   ~ 0
 LL_VCC
 Text Label 7500 3800 0    60   ~ 0
-LCD_A3
+LCD_C3
 Text Label 9950 4200 0    60   ~ 0
 LCD_G2
 Text Label 9950 4100 0    60   ~ 0
@@ -570,7 +570,7 @@ F 4 "568-5869-1-ND" H 9050 1300 60  0001 C CNN "Digikey"
 	-1   0    0    -1  
 $EndComp
 Text Label 7450 2900 0    60   ~ 0
-LCD_C2
+TTL_CTS
 $Comp
 L GND #PWR3
 U 1 1 5107D8C5
@@ -591,13 +591,13 @@ F 4 "709-1189-1-ND" H 1850 6600 60  0001 C CNN "Digikey"
 	1    0    0    -1  
 $EndComp
 Text Label 7500 3700 0    60   ~ 0
-TTL_CTS
+LCD_B3
 Text Label 7500 3600 0    60   ~ 0
-TTL_RTS
+LCD_A3
 Text Label 7450 2800 0    60   ~ 0
-LCD_B2
+TTL_RTS
 Text Label 7450 2700 0    60   ~ 0
-LCD_A2
+LCD_C2
 $Comp
 L GND #PWR12
 U 1 1 5107D3A1
@@ -751,29 +751,29 @@ F 1 "GND" H 3100 7130 30  0001 C CNN
 	1    0    0    -1  
 $EndComp
 Text Label 4600 4350 0    60   ~ 0
-LCD_COM
+LCD_B2
 Text Label 4600 4250 0    60   ~ 0
-LCD_G3
+LCD_A2
 Text Label 7500 2400 0    60   ~ 0
-LCD_F3
+LCD_F2
 Text Label 7500 2300 0    60   ~ 0
-LCD_E3
+LCD_G2
 Text Label 7500 2200 0    60   ~ 0
-LCD_D3
+LCD_E2
 Text Label 7500 2100 0    60   ~ 0
-LCD_C3
+LCD_D2
 Text Label 7500 2000 0    60   ~ 0
-LCD_B3
+LCD_COM
 Text Label 7500 4300 0    60   ~ 0
 LCD_BC1
 Text Label 7500 4200 0    60   ~ 0
-LCD_G2
+LCD_F3
 Text Label 7500 4100 0    60   ~ 0
-LCD_F2
+LCD_G3
 Text Label 7500 4000 0    60   ~ 0
-LCD_E2
+LCD_E3
 Text Label 7500 3900 0    60   ~ 0
-LCD_D2
+LCD_D3
 $Comp
 L GND #PWR9
 U 1 1 51078783
