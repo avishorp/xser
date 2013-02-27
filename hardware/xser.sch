@@ -1,4 +1,4 @@
-EESchema Schematic File Version 2  date Mon 18 Feb 2013 11:36:38 PM IST
+EESchema Schematic File Version 2  date Wed 27 Feb 2013 12:11:34 AM IST
 LIBS:power
 LIBS:device
 LIBS:transistors
@@ -37,7 +37,7 @@ $Descr A4 11700 8267
 encoding utf-8
 Sheet 1 1
 Title "xser"
-Date "18 feb 2013"
+Date "26 feb 2013"
 Rev "1"
 Comp ""
 Comment1 ""
@@ -45,6 +45,8 @@ Comment2 ""
 Comment3 ""
 Comment4 ""
 $EndDescr
+Text Notes 5900 6750 0    100  ~ 0
+This work is licensed under the Creative Common Attribution \nNon-Commercial (CC BY-NC 2.5) license.
 Wire Wire Line
 	8350 1150 8000 1150
 Wire Wire Line
