@@ -1,4 +1,4 @@
-PCBNEW-BOARD Version 1 date Tue 26 Feb 2013 12:12:06 AM IST
+PCBNEW-BOARD Version 1 date Sun 03 Mar 2013 12:13:23 AM IST
 
 # Created by Pcbnew(2011-05-25)-stable
 
@@ -11,7 +11,7 @@ Links 92
 NoConn 0
 Di 40696 26271 63631 42041
 Ndraw 6
-Ntrack 599
+Ntrack 596
 Nzone 0
 BoardThickness 630
 Nmodule 26
@@ -21,7 +21,7 @@ $EndGENERAL
 $SHEETDESCR
 Sheet A4 11700 8267
 Title ""
-Date "25 feb 2013"
+Date "2 mar 2013"
 Rev ""
 Comp ""
 Comment1 ""
@@ -35,7 +35,7 @@ InternalUnit 0.000100 INCH
 Layers 2
 Layer[0] Back signal
 Layer[15] Front signal
-TrackWidth 80
+TrackWidth 200
 TrackWidthList 80
 TrackWidthList 120
 TrackWidthList 200
@@ -63,7 +63,7 @@ PadSize 600 600
 PadDrill 320
 Pad2MaskClearance 100
 AuxiliaryAxisOrg 24000 19000
-PcbPlotParams (pcbplotparams (layerselection 3178497) (usegerberextensions true) (excludeedgelayer true) (linewidth 60) (plotframeref false) (viasonmask false) (mode 1) (useauxorigin false) (hpglpennumber 1) (hpglpenspeed 20) (hpglpendiameter 15) (hpglpenoverlay 0) (pscolor true) (psnegative false) (psa4output false) (plotreference true) (plotvalue true) (plotothertext true) (plotinvisibletext false) (padsonsilk false) (subtractmaskfromsilk false) (outputformat 1) (mirror false) (drillshape 1) (scaleselection 1) (outputdirectory ""))
+PcbPlotParams (pcbplotparams (layerselection 15761409) (usegerberextensions true) (excludeedgelayer false) (linewidth 60) (plotframeref false) (viasonmask false) (mode 1) (useauxorigin false) (hpglpennumber 1) (hpglpenspeed 20) (hpglpendiameter 15) (hpglpenoverlay 0) (pscolor true) (psnegative false) (psa4output false) (plotreference true) (plotvalue true) (plotothertext true) (plotinvisibletext false) (padsonsilk false) (subtractmaskfromsilk false) (outputformat 1) (mirror false) (drillshape 1) (scaleselection 1) (outputdirectory /home/avishay/projects/xser/hardware/cam/))
 $EndSETUP
 
 $EQUIPOT
@@ -326,13 +326,23 @@ uViaDia 200
 uViaDrill 50
 AddNet "GND"
 $EndNCLASS
+$NCLASS
+Name "PWR3"
+Desc ""
+Clearance 100
+TrackWidth 400
+ViaDia 350
+ViaDrill 250
+uViaDia 200
+uViaDrill 50
+$EndNCLASS
 $MODULE OSHWLOGO3IN
 Po 56300 35400 0 0 00000000 512B6AE9 ~~
 Li OSHWLOGO3IN
 Cd OSHW LOGO
 Kw Open Source Hardware Logo
 Sc 512B6AE9
-AR 
+AR OSHWLOGO3IN
 Op 0 0 0
 T0 0 -2866 600 600 0 120 M I 20 N "G***"
 T1 0 2866 600 600 0 120 M I 20 N "LOGO"
@@ -110997,6 +111007,8 @@ Po 0 58600 34500 58100 34500 120 -1
 De 0 0 0 0 0
 Po 0 58600 34500 58100 34500 120 -1
 De 0 0 0 0 0
+Po 0 54100 35400 54100 35450 80 -1
+De 15 0 0 0 0
 Po 0 54900 31600 54900 31150 80 -1
 De 0 0 1 0 400000
 Po 0 55605 29605 55068 29605 80 -1
@@ -111653,25 +111665,31 @@ Po 0 59982 38137 59982 39512 80 -1
 De 0 0 30 0 0
 Po 0 59982 39512 59756 39738 80 -1
 De 0 0 30 0 0
+Po 0 60400 36400 52497 36400 250 -1
+De 15 0 31 0 0
+Po 0 53300 35450 53300 35400 200 -1
+De 15 0 31 0 0
+Po 0 54100 34600 54100 34700 200 -1
+De 15 0 31 0 0
+Po 0 53300 35400 54100 34600 200 -1
+De 15 0 31 0 0
+Po 0 52497 36400 51421 35324 250 -1
+De 15 0 31 0 0
 Po 0 51500 29250 52399 29250 120 -1
 De 0 0 31 0 400000
 Po 0 52399 29250 52456 29307 120 -1
 De 0 0 31 0 0
 Po 0 55300 33700 54100 33700 200 -1
 De 0 0 31 0 0
-Po 0 54100 33700 54100 35450 200 -1
+Po 0 54100 33700 54100 34700 200 -1
 De 15 0 31 0 0
 Po 3 54100 33700 54100 33700 350 -1
 De 15 1 31 0 0
-Po 0 54100 35450 54100 35400 80 -1
-De 15 0 31 0 0
-Po 0 54100 35400 54100 35450 80 -1
-De 15 0 31 0 0
 Po 0 55000 32300 54700 32300 200 -1
 De 15 0 31 0 0
 Po 0 51547 35450 51421 35324 200 -1
 De 15 0 31 0 0
-Po 0 51547 35450 54100 35450 200 -1
+Po 0 51547 35450 53300 35450 200 -1
 De 15 0 31 0 0
 Po 0 59900 35200 59900 34000 120 -1
 De 15 0 31 0 0
@@ -111679,24 +111697,12 @@ Po 0 47521 28479 47521 29096 200 -1
 De 0 0 31 0 0
 Po 3 55300 33700 55300 33700 350 -1
 De 15 1 31 0 0
-Po 0 57400 36100 56700 35700 200 -1
-De 15 0 31 0 0
-Po 0 58300 36100 57400 36100 200 -1
-De 15 0 31 0 0
-Po 0 56700 35700 56700 35450 200 -1
-De 15 0 31 0 0
-Po 0 54100 35450 56700 35450 200 -1
-De 15 0 31 0 0
-Po 0 60150 35450 58500 35450 200 -1
-De 15 0 31 0 0
-Po 0 58500 35450 58500 35800 200 -1
-De 15 0 31 0 0
-Po 0 58500 35800 58300 36100 200 -1
-De 15 0 31 0 0
 Po 0 50974 34091 50974 34277 200 -1
 De 0 0 31 0 400000
 Po 0 49224 35324 51421 35324 200 -1
 De 15 0 31 0 0
+Po 0 49000 35100 49224 35324 200 -1
+De 15 0 31 0 400000
 Po 0 55300 33700 55300 32600 200 -1
 De 15 0 31 0 0
 Po 0 55150 33850 55300 33700 80 -1
@@ -111745,6 +111751,8 @@ Po 0 52456 29307 51941 28792 200 -1
 De 0 0 31 0 0
 Po 0 51421 35324 51421 35037 200 -1
 De 0 0 31 0 0
+Po 0 51421 35037 50974 34590 200 -1
+De 0 0 31 0 0
 Po 0 49014 33600 49228 33600 200 -1
 De 0 0 31 0 0
 Po 0 48800 33600 49014 33600 200 -1
@@ -111783,8 +111791,6 @@ Po 0 54640 32240 54640 31600 80 -1
 De 0 0 31 0 800000
 Po 3 50000 30200 50000 30200 350 -1
 De 15 1 31 0 0
-Po 0 51421 35037 50974 34590 200 -1
-De 0 0 31 0 0
 Po 0 47580 36520 47780 36720 200 -1
 De 0 0 31 0 0
 Po 0 51900 36893 51900 37300 200 -1
@@ -111794,6 +111800,12 @@ De 0 0 31 0 400000
 Po 0 49014 33600 48725 33311 200 -1
 De 0 0 31 0 0
 Po 0 52383 35740 51967 35324 200 -1
+De 0 0 31 0 0
+Po 0 51900 36893 52383 36410 200 -1
+De 0 0 31 0 0
+Po 0 52383 36410 52383 35740 200 -1
+De 0 0 31 0 0
+Po 0 51967 35324 51421 35324 200 -1
 De 0 0 31 0 0
 Po 0 60500 33400 60300 33600 120 -1
 De 0 0 31 0 0
@@ -111857,12 +111869,8 @@ Po 0 50904 34277 50808 34181 200 -1
 De 0 0 31 0 0
 Po 0 51300 37600 51183 37600 200 -1
 De 0 0 31 0 0
-Po 0 51967 35324 51421 35324 200 -1
-De 0 0 31 0 0
 Po 0 51174 38930 51174 37591 80 -1
 De 0 0 31 0 C00000
-Po 0 52383 36410 52383 35740 200 -1
-De 0 0 31 0 0
 Po 0 57975 31500 57975 30400 250 -1
 De 0 0 31 0 C00000
 Po 0 61600 30000 61600 33000 250 -1
@@ -111881,10 +111889,6 @@ Po 0 49228 34872 49228 33600 200 -1
 De 0 0 31 0 0
 Po 0 47780 36720 47780 37520 200 -1
 De 0 0 31 0 800000
-Po 0 49000 35100 49224 35324 200 -1
-De 15 0 31 0 400000
-Po 0 51900 36893 52383 36410 200 -1
-De 0 0 31 0 0
 Po 0 50300 28700 50300 28500 80 -1
 De 0 0 32 0 0
 Po 0 51500 30018 50672 30018 80 -1
