@@ -1,4 +1,4 @@
-EESchema Schematic File Version 2  date Wed 27 Feb 2013 12:11:34 AM IST
+EESchema Schematic File Version 2  date Wed 06 Mar 2013 08:13:33 AM IST
 LIBS:power
 LIBS:device
 LIBS:transistors
@@ -37,7 +37,7 @@ $Descr A4 11700 8267
 encoding utf-8
 Sheet 1 1
 Title "xser"
-Date "26 feb 2013"
+Date "6 mar 2013"
 Rev "1"
 Comp ""
 Comment1 ""
@@ -375,6 +375,8 @@ U 1 1 51229DDC
 P 9050 1300
 F 0 "U6" H 9350 1750 60  0000 C CNN
 F 1 "IP4234CZ6" H 9400 1650 60  0000 C CNN
+F 4 "IP4234CZ6,125" H 1200 1400 60  0001 C CNN "Part Number"
+F 5 "NXP Semiconductors" H 1200 1400 60  0001 C CNN "Manufacturer"
 	1    9050 1300
 	1    0    0    -1  
 $EndComp
@@ -393,7 +395,8 @@ U 1 1 511DECAA
 P 2600 4950
 F 0 "R3" V 2800 4950 50  0000 C CNN
 F 1 "470K" V 2700 4950 50  0000 C CNN
-F 4 "P100KACT-ND" H 2600 4950 60  0001 C CNN "Digikey"
+F 4 "CRCW0603470KJNEA" H 1200 1400 60  0001 C CNN "Part Number"
+F 5 "Vishay Dale" H 1200 1400 60  0001 C CNN "Manufacturer"
 	1    2600 4950
 	0    -1   -1   0   
 $EndComp
@@ -403,7 +406,8 @@ U 1 1 511DE8CF
 P 2250 6650
 F 0 "R2" H 2100 6700 50  0000 C CNN
 F 1 "470K" H 2100 6800 50  0000 C CNN
-F 4 "P100KACT-ND" H 2250 6650 60  0001 C CNN "Digikey"
+F 4 "CRCW0603470KJNEA" H 1200 1400 60  0001 C CNN "Part Number"
+F 5 "Vishay Dale" H 1200 1400 60  0001 C CNN "Manufacturer"
 	1    2250 6650
 	1    0    0    -1  
 $EndComp
@@ -499,6 +503,8 @@ U 1 1 511D6A76
 P 1100 5600
 F 0 "J2" H 1100 5900 50  0000 C CNN
 F 1 "HEADER,.100" H 1100 6000 50  0000 C CNN
+F 4 "TSW-1-05-07-F-S" H 1100 5600 60  0001 C CNN "Part Number"
+F 5 "Samtec" H 1100 5600 60  0001 C CNN "Manufacturer"
 	1    1100 5600
 	-1   0    0    -1  
 $EndComp
@@ -517,7 +523,8 @@ U 1 1 511D69CF
 P 2200 3400
 F 0 "R1" V 2100 3400 50  0000 C CNN
 F 1 "100K" V 2000 3400 50  0000 C CNN
-F 4 "P100KACT-ND" H 2200 3400 60  0001 C CNN "Digikey"
+F 4 "CRCW0603100KJNEA" H 1200 1400 60  0001 C CNN "Part Number"
+F 5 "Vishay Dale" H 1200 1400 60  0001 C CNN "Manufacturer"
 	1    2200 3400
 	0    -1   -1   0   
 $EndComp
@@ -553,7 +560,9 @@ L MAX3222_SSOP U1
 U 1 1 511D691F
 P 2100 1950
 F 0 "U1" H 1700 2950 60  0000 C CNN
-F 1 "MAX3222_SSOP" H 1950 2850 60  0000 C CNN
+F 1 "MAX3222" H 1850 2850 60  0000 C CNN
+F 4 "MAX3222CUP+" H 1200 1400 60  0001 C CNN "Part Number"
+F 5 "Maxim Integrated" H 1200 1400 60  0001 C CNN "Manufacturer"
 	1    2100 1950
 	1    0    0    -1  
 $EndComp
@@ -567,6 +576,8 @@ U 1 1 5112BE85
 P 1700 4350
 F 0 "J3" H 1700 4900 70  0000 C CNN
 F 1 "DB9" H 1700 3800 70  0000 C CNN
+F 4 "1734348-1" H 1700 4350 60  0001 C CNN "Part Number"
+F 5 "TE Connectivity" H 1700 4350 60  0001 C CNN "Manufacturer"
 	1    1700 4350
 	-1   0    0    -1  
 $EndComp
@@ -588,6 +599,8 @@ P 1850 6600
 F 0 "C9" H 1550 6550 50  0000 L CNN
 F 1 "0.1uF" H 1500 6450 50  0000 L CNN
 F 4 "709-1189-1-ND" H 1850 6600 60  0001 C CNN "Digikey"
+F 5 "500R15W104KV4T" H 1200 1400 60  0001 C CNN "Part Number"
+F 6 "Johanson Dielectrics Inc" H 1200 1400 60  0001 C CNN "Manufacturer"
 	1    1850 6600
 	1    0    0    -1  
 $EndComp
@@ -624,6 +637,8 @@ P 3750 2150
 F 0 "C5" H 3950 2200 50  0000 L CNN
 F 1 "0.1uF" H 3950 2100 50  0000 L CNN
 F 4 "709-1189-1-ND" H 3750 2150 60  0001 C CNN "Digikey"
+F 5 "500R15W104KV4T" H 1200 1400 60  0001 C CNN "Part Number"
+F 6 "Johanson Dielectrics Inc" H 1200 1400 60  0001 C CNN "Manufacturer"
 	1    3750 2150
 	1    0    0    -1  
 $EndComp
@@ -634,6 +649,8 @@ P 3200 1450
 F 0 "C4" V 3150 1650 50  0000 L CNN
 F 1 "0.1uF" V 3050 1550 50  0000 L CNN
 F 4 "709-1189-1-ND" V 3200 1450 60  0001 C CNN "Digikey"
+F 5 "500R15W104KV4T" H 1200 1400 60  0001 C CNN "Part Number"
+F 6 "Johanson Dielectrics Inc" H 1200 1400 60  0001 C CNN "Manufacturer"
 	1    3200 1450
 	0    -1   -1   0   
 $EndComp
@@ -644,6 +661,8 @@ P 3200 1200
 F 0 "C3" V 3500 1350 50  0000 L CNN
 F 1 "0.1uF" V 3400 1300 50  0000 L CNN
 F 4 "709-1189-1-ND" V 3200 1200 60  0001 C CNN "Digikey"
+F 5 "500R15W104KV4T" H 1200 1400 60  0001 C CNN "Part Number"
+F 6 "Johanson Dielectrics Inc" H 1200 1400 60  0001 C CNN "Manufacturer"
 	1    3200 1200
 	0    -1   -1   0   
 $EndComp
@@ -654,6 +673,8 @@ P 1200 1900
 F 0 "C2" H 900 2050 50  0000 L CNN
 F 1 "0.1uF" H 850 1950 50  0000 L CNN
 F 4 "709-1189-1-ND" H 1200 1900 60  0001 C CNN "Digikey"
+F 5 "500R15W104KV4T" H 1200 1400 60  0001 C CNN "Part Number"
+F 6 "Johanson Dielectrics Inc" H 1200 1400 60  0001 C CNN "Manufacturer"
 	1    1200 1900
 	1    0    0    -1  
 $EndComp
@@ -664,6 +685,8 @@ P 1200 1400
 F 0 "C1" H 900 1450 50  0000 L CNN
 F 1 "0.1uF" H 850 1350 50  0000 L CNN
 F 4 "709-1189-1-ND" H 1200 1400 60  0001 C CNN "Digikey"
+F 5 "500R15W104KV4T" H 1200 1400 60  0001 C CNN "Part Number"
+F 6 "Johanson Dielectrics Inc" H 1200 1400 60  0001 C CNN "Manufacturer"
 	1    1200 1400
 	1    0    0    -1  
 $EndComp
@@ -680,6 +703,8 @@ P 3650 6650
 F 0 "U3" H 3450 7150 60  0000 C CNN
 F 1 "SN74LVC2T45" H 3700 7050 60  0000 C CNN
 F 4 "296-16845-1-ND" H 3650 6650 60  0001 C CNN "Digikey"
+F 5 "SN74LVC2T45DCTR" H 1200 1400 60  0001 C CNN "Part Number"
+F 6 "Texas Instruments" H 1200 1400 60  0001 C CNN "Manufacturer"
 	1    3650 6650
 	1    0    0    -1  
 $EndComp
@@ -809,6 +834,8 @@ P 4300 4250
 F 0 "C6" H 4000 4350 50  0000 L CNN
 F 1 "0.1uF" H 3950 4250 50  0000 L CNN
 F 4 "709-1189-1-ND" H 4300 4250 60  0001 C CNN "Digikey"
+F 5 "500R15W104KV4T" H 1200 1400 60  0001 C CNN "Part Number"
+F 6 "Johanson Dielectrics Inc" H 1200 1400 60  0001 C CNN "Manufacturer"
 	1    4300 4250
 	1    0    0    -1  
 $EndComp
@@ -819,6 +846,8 @@ P 4600 3100
 F 0 "C7" H 4300 3150 50  0000 L CNN
 F 1 "0.1uF" H 4250 3050 50  0000 L CNN
 F 4 "709-1189-1-ND" H 4600 3100 60  0001 C CNN "Digikey"
+F 5 "500R15W104KV4T" H 1200 1400 60  0001 C CNN "Part Number"
+F 6 "Johanson Dielectrics Inc" H 1200 1400 60  0001 C CNN "Manufacturer"
 	1    4600 3100
 	1    0    0    -1  
 $EndComp
@@ -847,6 +876,8 @@ P 7150 1000
 F 0 "C8" H 6900 900 50  0000 L CNN
 F 1 "4.7uF" H 6800 1000 50  0000 L CNN
 F 4 "718-1146-1-ND" H 7150 1000 60  0001 C CNN "Digikey"
+F 5 "293D475X9010A2TE3" H 1200 1400 60  0001 C CNN "Part Number"
+F 6 "Vishay Sprague" H 1200 1400 60  0001 C CNN "Manufacturer"
 	1    7150 1000
 	1    0    0    1   
 $EndComp
@@ -870,6 +901,8 @@ P 7450 750
 F 0 "L1" V 7650 750 40  0000 C CNN
 F 1 "BLM21PG331SN1D" V 7550 750 40  0000 C CNN
 F 4 "490-5988-1-ND" V 7450 750 60  0001 C CNN "Digikey"
+F 5 "BLM21PG331SN1D" H 1200 1400 60  0001 C CNN "Part Number"
+F 6 "Murata Electronics North America" H 1200 1400 60  0001 C CNN "Manufacturer"
 	1    7450 750 
 	0    1    -1   0   
 $EndComp
@@ -888,6 +921,8 @@ U 1 1 5106FE9D
 P 11050 2500
 F 0 "R4" H 10800 2450 50  0000 C CNN
 F 1 "0" H 10750 2550 50  0000 C CNN
+F 4 "CRCW06030000Z0EA" H 1200 1400 60  0001 C CNN "Part Number"
+F 5 "Vishay Dale" H 1200 1400 60  0001 C CNN "Manufacturer"
 	1    11050 2500
 	1    0    0    -1  
 $EndComp
@@ -898,6 +933,8 @@ P 10800 1350
 F 0 "J1" H 10300 750 60  0000 C CNN
 F 1 "USB_MINI_B" H 10350 850 60  0000 C CNN
 F 4 "ED2992CT-ND" H 10800 1350 60  0001 C CNN "Digikey"
+F 5 "USB-M26FTR" H 1200 1400 60  0001 C CNN "Part Number"
+F 6 "On Shore Technology Inc" H 1200 1400 60  0001 C CNN "Manufacturer"
 	1    10800 1350
 	1    0    0    -1  
 $EndComp
@@ -908,6 +945,8 @@ P 6200 3150
 F 0 "U4" H 6725 4550 60  0000 C CNN
 F 1 "PIC18F24K50-I/SS" H 6575 1800 60  0000 C CNN
 F 4 "PIC18F24K50T-I/SS-ND" H 6200 3150 60  0001 C CNN "Digikey"
+F 5 "PIC18F24K50T-I/SS" H 1200 1400 60  0001 C CNN "Part Number"
+F 6 "Microchip Technology" H 1200 1400 60  0001 C CNN "Manufacturer"
 	1    6200 3150
 	1    0    0    -1  
 $EndComp
@@ -918,6 +957,8 @@ P 3650 5650
 F 0 "U2" H 3450 6150 60  0000 C CNN
 F 1 "SN74LVC2T45" H 3700 6050 60  0000 C CNN
 F 4 "296-16845-1-ND" H 3650 5650 60  0001 C CNN "Digikey"
+F 5 "SN74LVC2T45DCTR" H 1200 1400 60  0001 C CNN "Part Number"
+F 6 "Texas Instruments" H 1200 1400 60  0001 C CNN "Manufacturer"
 	1    3650 5650
 	1    0    0    -1  
 $EndComp
@@ -928,6 +969,8 @@ P 7700 6000
 F 0 "U5" H 7400 6700 60  0000 C CNN
 F 1 "LCD-S2X1C50TR" H 7600 6600 60  0000 C CNN
 F 4 "67-1787-ND" H 7700 6000 60  0001 C CNN "Digikey"
+F 5 "LCD-S2X1C50TR" H 1200 1400 60  0001 C CNN "Part Number"
+F 6 "Lumex Opto/Components Inc" H 1200 1400 60  0001 C CNN "Manufacturer"
 	1    7700 6000
 	1    0    0    -1  
 $EndComp
