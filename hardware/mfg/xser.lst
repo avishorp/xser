@@ -1,0 +1,31 @@
+eeschema (2011-05-25)-stable  >> Creation date: Wed 06 Mar 2013 08:15:47 AM IST
+
+#Cmp ( order = Reference )
+| C1         0.1uF       ; 709-1189-1-ND; 500R15W104KV4T; Johanson Dielectrics Inc
+| C2         0.1uF       ; 709-1189-1-ND; 500R15W104KV4T; Johanson Dielectrics Inc
+| C3         0.1uF       ; 709-1189-1-ND; 500R15W104KV4T; Johanson Dielectrics Inc
+| C4         0.1uF       ; 709-1189-1-ND; 500R15W104KV4T; Johanson Dielectrics Inc
+| C5         0.1uF       ; 709-1189-1-ND; 500R15W104KV4T; Johanson Dielectrics Inc
+| C6         0.1uF       ; 709-1189-1-ND; 500R15W104KV4T; Johanson Dielectrics Inc
+| C7         0.1uF       ; 709-1189-1-ND; 500R15W104KV4T; Johanson Dielectrics Inc
+| C8         4.7uF       ; 718-1146-1-ND; 293D475X9010A2TE3; Vishay Sprague
+| C9         0.1uF       ; 709-1189-1-ND; 500R15W104KV4T; Johanson Dielectrics Inc
+| J1         USB_MINI_B  ; ED2992CT-ND ; USB-M26FTR  ; On Shore Technology Inc
+| J2         HEADER,.100 ; TSW-1-05-07-F-S; Samtec      
+| J3         DB9         ; 1734348-1   ; TE Connectivity
+| J4         CONN_5      
+| L1         BLM21PG331SN1D; 490-5988-1-ND; BLM21PG331SN1D; Murata Electronics North America
+| R1         100K        ; CRCW0603100KJNEA; Vishay Dale 
+| R2         470K        ; CRCW0603470KJNEA; Vishay Dale 
+| R3         470K        ; CRCW0603470KJNEA; Vishay Dale 
+| R4         0           ; CRCW06030000Z0EA; Vishay Dale 
+| SW1        SW_PUSH     
+| U1         MAX3222     ; MAX3222CUP+ ; Maxim Integrated
+| U2         SN74LVC2T45 ; 296-16845-1-ND; SN74LVC2T45DCTR; Texas Instruments
+| U3         SN74LVC2T45 ; 296-16845-1-ND; SN74LVC2T45DCTR; Texas Instruments
+| U4         PIC18F24K50-I/SS; PIC18F24K50T-I/SS-ND; PIC18F24K50T-I/SS; Microchip Technology
+| U5         LCD-S2X1C50TR; 67-1787-ND  ; LCD-S2X1C50TR; Lumex Opto/Components Inc
+| U6         IP4234CZ6   ; IP4234CZ6,125; NXP Semiconductors
+#End Cmp
+
+#End List
