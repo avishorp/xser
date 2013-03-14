@@ -1,4 +1,4 @@
-PCBNEW-BOARD Version 1 date Tue 12 Mar 2013 04:53:29 PM IST
+PCBNEW-BOARD Version 1 date Thu 14 Mar 2013 11:38:27 AM IST
 
 # Created by Pcbnew(2011-05-25)-stable
 
@@ -9,8 +9,8 @@ Ly 1FFF8001
 EnabledLayers 1FFF8001
 Links 92
 NoConn 0
-Di 40696 26271 72000 46081
-Ndraw 8
+Di 40696 26271 72000 57020
+Ndraw 9
 Ntrack 596
 Nzone 0
 BoardThickness 630
@@ -21,7 +21,7 @@ $EndGENERAL
 $SHEETDESCR
 Sheet A4 11700 8267
 Title ""
-Date "12 mar 2013"
+Date "14 mar 2013"
 Rev ""
 Comp ""
 Comment1 ""
@@ -110977,6 +110977,16 @@ Of 0.000000 0.000000 0.000000
 Ro 0.000000 0.000000 0.000000
 $EndSHAPE3D
 $EndMODULE  DB9MC_CUSTOM
+$TEXTPCB
+Te "Specification:"
+nl "1. Number of Layers: 2"
+nl "2. Overall Thickness: 1.6mm"
+nl "3. Copper Thickness: 1 oz"
+nl "4. Surface Finish: HASL"
+nl "5. Solder Mask Color: Green"
+Po 51900 50200 600 800 120 0
+De 24 1 0 Normal
+$EndTEXTPCB
 $COTATION
 Ge 0 24 0
 Va 14600
