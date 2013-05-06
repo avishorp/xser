@@ -1,6 +1,8 @@
 // Internal osccilator, no ouput to a pin
 #pragma config FOSC = INTOSCIO
 
+
+
 // Enable the PLL x3 to provide 48MHz to the USB core
 // The software has to set the internal clock post-scaler output to 16MHz
 #pragma config PLLSEL = PLL3X

@@ -45,11 +45,11 @@ OBJECTDIR=build/${CND_CONF}/${IMAGE_TYPE}
 DISTDIR=dist/${CND_CONF}/${IMAGE_TYPE}
 
 # Object Files Quoted if spaced
-OBJECTFILES_QUOTED_IF_SPACED=${OBJECTDIR}/main.o ${OBJECTDIR}/usb_descriptors.o ${OBJECTDIR}/config.o ${OBJECTDIR}/usb_stack/usb_device.o ${OBJECTDIR}/usb_stack/usb_function_cdc.o ${OBJECTDIR}/usb_stack/usb_function_hid.o
-POSSIBLE_DEPFILES=${OBJECTDIR}/main.o.d ${OBJECTDIR}/usb_descriptors.o.d ${OBJECTDIR}/config.o.d ${OBJECTDIR}/usb_stack/usb_device.o.d ${OBJECTDIR}/usb_stack/usb_function_cdc.o.d ${OBJECTDIR}/usb_stack/usb_function_hid.o.d
+OBJECTFILES_QUOTED_IF_SPACED=${OBJECTDIR}/main.o ${OBJECTDIR}/usb_descriptors.o ${OBJECTDIR}/config.o ${OBJECTDIR}/usb_stack/usb_device.o ${OBJECTDIR}/usb_stack/usb_function_cdc.o ${OBJECTDIR}/usb_stack/usb_function_hid.o ${OBJECTDIR}/lcd.o
+POSSIBLE_DEPFILES=${OBJECTDIR}/main.o.d ${OBJECTDIR}/usb_descriptors.o.d ${OBJECTDIR}/config.o.d ${OBJECTDIR}/usb_stack/usb_device.o.d ${OBJECTDIR}/usb_stack/usb_function_cdc.o.d ${OBJECTDIR}/usb_stack/usb_function_hid.o.d ${OBJECTDIR}/lcd.o.d
 
 # Object Files
-OBJECTFILES=${OBJECTDIR}/main.o ${OBJECTDIR}/usb_descriptors.o ${OBJECTDIR}/config.o ${OBJECTDIR}/usb_stack/usb_device.o ${OBJECTDIR}/usb_stack/usb_function_cdc.o ${OBJECTDIR}/usb_stack/usb_function_hid.o
+OBJECTFILES=${OBJECTDIR}/main.o ${OBJECTDIR}/usb_descriptors.o ${OBJECTDIR}/config.o ${OBJECTDIR}/usb_stack/usb_device.o ${OBJECTDIR}/usb_stack/usb_function_cdc.o ${OBJECTDIR}/usb_stack/usb_function_hid.o ${OBJECTDIR}/lcd.o
 
 
 CFLAGS=
@@ -122,6 +122,13 @@ ${OBJECTDIR}/usb_stack/usb_function_hid.o: usb_stack/usb_function_hid.c  nbproje
 	@${DEP_GEN} -d ${OBJECTDIR}/usb_stack/usb_function_hid.o 
 	@${FIXDEPS} "${OBJECTDIR}/usb_stack/usb_function_hid.o.d" $(SILENT) -rsi ${MP_CC_DIR}../ -c18 
 	
+${OBJECTDIR}/lcd.o: lcd.c  nbproject/Makefile-${CND_CONF}.mk
+	@${MKDIR} ${OBJECTDIR} 
+	@${RM} ${OBJECTDIR}/lcd.o.d 
+	${MP_CC} $(MP_EXTRA_CC_PRE) -D__DEBUG -D__MPLAB_DEBUGGER_PK3=1 -p$(MP_PROCESSOR_OPTION) -I"usb_stack" -I"usb_stack/USB" -ms -oa-  -I ${MP_CC_DIR}\\..\\h  -fo ${OBJECTDIR}/lcd.o   lcd.c 
+	@${DEP_GEN} -d ${OBJECTDIR}/lcd.o 
+	@${FIXDEPS} "${OBJECTDIR}/lcd.o.d" $(SILENT) -rsi ${MP_CC_DIR}../ -c18 
+	
 else
 ${OBJECTDIR}/main.o: main.c  nbproject/Makefile-${CND_CONF}.mk
 	@${MKDIR} ${OBJECTDIR} 
@@ -164,6 +171,13 @@ ${OBJECTDIR}/usb_stack/usb_function_hid.o: usb_stack/usb_function_hid.c  nbproje
 	${MP_CC} $(MP_EXTRA_CC_PRE) -p$(MP_PROCESSOR_OPTION) -I"usb_stack" -I"usb_stack/USB" -ms -oa-  -I ${MP_CC_DIR}\\..\\h  -fo ${OBJECTDIR}/usb_stack/usb_function_hid.o   usb_stack/usb_function_hid.c 
 	@${DEP_GEN} -d ${OBJECTDIR}/usb_stack/usb_function_hid.o 
 	@${FIXDEPS} "${OBJECTDIR}/usb_stack/usb_function_hid.o.d" $(SILENT) -rsi ${MP_CC_DIR}../ -c18 
+	
+${OBJECTDIR}/lcd.o: lcd.c  nbproject/Makefile-${CND_CONF}.mk
+	@${MKDIR} ${OBJECTDIR} 
+	@${RM} ${OBJECTDIR}/lcd.o.d 
+	${MP_CC} $(MP_EXTRA_CC_PRE) -p$(MP_PROCESSOR_OPTION) -I"usb_stack" -I"usb_stack/USB" -ms -oa-  -I ${MP_CC_DIR}\\..\\h  -fo ${OBJECTDIR}/lcd.o   lcd.c 
+	@${DEP_GEN} -d ${OBJECTDIR}/lcd.o 
+	@${FIXDEPS} "${OBJECTDIR}/lcd.o.d" $(SILENT) -rsi ${MP_CC_DIR}../ -c18 
 	
 endif
 

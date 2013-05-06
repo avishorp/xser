@@ -18,6 +18,8 @@
 
 #include "HardwareProfile.h"
 
+#include "lcd.h"
+
 /** V A R I A B L E S ********************************************************/
 #if defined(__18CXX)
 #pragma udata
@@ -55,8 +57,6 @@ void USBDeviceTasks(void);
 void YourHighPriorityISRCode();
 void YourLowPriorityISRCode();
 void USBCBSendResume(void);
-void BlinkUSBStatus(void);
-void InvertLCD(void);
 void UserInit(void);
 void InitializeUSART(void);
 void putcUSART(char c);
@@ -67,28 +67,28 @@ unsigned char getcUSART ();
 #define REMAPPED_HIGH_INTERRUPT_VECTOR_ADDRESS	0x08
 #define REMAPPED_LOW_INTERRUPT_VECTOR_ADDRESS	0x18
 	
-#pragma code REMAPPED_HIGH_INTERRUPT_VECTOR = REMAPPED_HIGH_INTERRUPT_VECTOR_ADDRESS
-void Remapped_High_ISR (void)
-{
-     _asm goto YourHighPriorityISRCode _endasm
-}
+//#pragma code REMAPPED_HIGH_INTERRUPT_VECTOR = REMAPPED_HIGH_INTERRUPT_VECTOR_ADDRESS
+//void Remapped_High_ISR (void)
+//{
+//     _asm goto YourHighPriorityISRCode _endasm
+//}
 
-#pragma code REMAPPED_LOW_INTERRUPT_VECTOR = REMAPPED_LOW_INTERRUPT_VECTOR_ADDRESS
-void Remapped_Low_ISR (void)
-{
-     _asm goto YourLowPriorityISRCode _endasm
-}
+//#pragma code REMAPPED_LOW_INTERRUPT_VECTOR = REMAPPED_LOW_INTERRUPT_VECTOR_ADDRESS
+//void Remapped_Low_ISR (void)
+//{
+//     _asm goto YourLowPriorityISRCode _endasm
+//}
 	
 
 #pragma code
 	
 	
 //These are your actual interrupt handling routines.
-#pragma interrupt YourHighPriorityISRCode
-void YourHighPriorityISRCode()
-{
+//#pragma interrupt YourHighPriorityISRCode
+//void YourHighPriorityISRCode()
+//{
 
-}	//This return will be a "retfie fast", since this is in a #pragma interrupt section 
+//}	//This return will be a "retfie fast", since this is in a #pragma interrupt section
 
 #pragma interruptlow YourLowPriorityISRCode
 void YourLowPriorityISRCode()
@@ -117,7 +117,22 @@ void YourLowPriorityISRCode()
  * Note:            None
  *****************************************************************************/
 void main(void)
-{   
+{
+    // Set the oscillator to 16MHz
+    OSCCON = 0b01110000;
+
+    // Initialize the I/O pins
+    IO_Init();
+
+    // Initialize the LCD
+    LCD_Init();
+
+    // Enable interrupts
+    RCONbits.IPEN = 1;
+    INTCONbits.GIEH = 1;
+
+    while(1);
+
     InitializeSystem();
 
 
@@ -254,12 +269,6 @@ void UserInit(void)
     LastRS232Out = 0;
     lastTransmission = 0;
 
-    mInitAllLEDs();
-    mLCD_Init();
-
-    NoLCDCmd = 0xff;
-    mLCD_SetDigit(0x01);
-
 }//end UserInit
 
 /******************************************************************************
@@ -281,16 +290,6 @@ void UserInit(void)
 void InitializeUSART(void)
 {
 
-    unsigned char c;
-
-    UART_TRISRx=1;				// RX
-    UART_TRISTx=0;				// TX
-    TXSTA = 0x24;       	// TX enable BRGH=1
-    RCSTA = 0x90;       	// Single Character RX
-    SPBRG = 0x71;
-    SPBRGH = 0x02;      	// 0x0271 for 48MHz -> 19200 baud
-    BAUDCON = 0x08;     	// BRG16 = 1
-    c = RCREG;				// read 
 
 }//end InitializeUSART
 
@@ -431,11 +430,7 @@ unsigned char getcUSART ()
 void ProcessIO(void)
 {
     unsigned char digit;
-
-    //Blink the LEDs according to the USB device status
-    BlinkUSBStatus();
-    InvertLCD();
-    
+  
     // User Application USB tasks
     if((USBDeviceState < CONFIGURED_STATE)||(USBSuspendControl==1)) return;
 
@@ -515,7 +510,6 @@ void ProcessIO(void)
 
         // Display the LSB digit
         digit = ReceivedDataBuffer[0] % 10;
-        mLCD_SetDigit(SevenSeg[digit]);
         // (in the prototype, we only have a single digit)
 
         // Re-arm the HID EP
@@ -525,119 +519,7 @@ void ProcessIO(void)
 
 }//end ProcessIO
 
-/********************************************************************
- * Function:        void BlinkUSBStatus(void)
- *
- * PreCondition:    None
- *
- * Input:           None
- *
- * Output:          None
- *
- * Side Effects:    None
- *
- * Overview:        BlinkUSBStatus turns on and off LEDs 
- *                  corresponding to the USB device state.
- *
- * Note:            mLED macros can be found in HardwareProfile.h
- *                  USBDeviceState is declared and updated in
- *                  usb_device.c.
- *******************************************************************/
-void BlinkUSBStatus(void)
-{
-    static WORD led_count=0;
-    unsigned char digit;
-    
-    if(led_count == 0)led_count = 10000U;
-    led_count--;
 
-    #define mLED_Both_Off()         {mLED_1_Off();mLED_2_Off();}
-    #define mLED_Both_On()          {mLED_1_On();mLED_2_On();}
-    #define mLED_Only_1_On()        {mLED_1_On();mLED_2_Off();}
-    #define mLED_Only_2_On()        {mLED_1_Off();mLED_2_On();}
-
-    if(USBSuspendControl == 1)
-    {
-        if(led_count==0)
-        {
-            mLED_1_Toggle();
-            if(mGetLED_1())
-            {
-                mLED_2_On();
-            }
-            else
-            {
-                mLED_2_Off();
-            }
-        }//end if
-    }
-    else
-    {
-        if(USBDeviceState == DETACHED_STATE)
-        {
-            mLED_Both_Off();
-        }
-        else if(USBDeviceState == ATTACHED_STATE)
-        {
-            mLED_Both_On();
-        }
-        else if(USBDeviceState == POWERED_STATE)
-        {
-            mLED_Only_1_On();
-        }
-        else if(USBDeviceState == DEFAULT_STATE)
-        {
-            mLED_Only_2_On();
-        }
-        else if(USBDeviceState == ADDRESS_STATE)
-        {
-            if(led_count == 0)
-            {
-                mLED_1_Toggle();
-                mLED_2_Off();
-            }//end if
-        }
-        else if(USBDeviceState == CONFIGURED_STATE)
-        {
-            if(led_count==0)
-            {
-                mLED_1_Toggle();
-                if(mGetLED_1())
-                {
-                    mLED_2_Off();
-                }
-                else
-                {
-                    mLED_2_On();
-                }
-            }//end if
-        }//end if(...)
-
-        if ((led_count==0) && NoLCDCmd) {
-            digit = mLCD_GetDigit();
-            digit <<= 1;
-            if (digit == 0x40)
-                digit = 0x01;
-
-            mLCD_SetDigit(digit);
-        }
-    }//end if(UCONbits.SUSPND...)
-
-}//end BlinkUSBStatus
-
-void InvertLCD(void)
-{
-    static WORD lcd_count=0;
-
-    if (lcd_count == 0)
-        lcd_count = 100U;
-
-    lcd_count--;
-
-    if (lcd_count == 0) {
-        mLCD_Invert();
-    }
-}
 
 // ******************************************************************************************************
 // ************** USB Callback Functions ****************************************************************
