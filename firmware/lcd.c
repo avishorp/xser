@@ -18,6 +18,9 @@ void LCD_SetDigit3(unsigned char segments);
 #define LCD_CriticalSectionBegin() PIE1bits.TMR2IE = 0;
 #define LCD_CriticalSectionEnd() PIE1bits.TMR2IE = 1;
 
+// Decimal to 7-segment translation table
+ROM unsigned char LCD_SevenSeg[] = {0x3f, 0x06, 0x5b, 0x4f, 0x66, 0x6d, 0x7d, 0x07, 0x7f, 0x6f };
+
 
 #pragma interrupt LCD_Interrupt_Handler
 void LCD_Interrupt_Handler()
@@ -153,6 +156,36 @@ void LCD_SetDisplayType(unsigned char type)
 
 void LCD_SetDisplayValue(unsigned char value)
 {
+    LCD_CriticalSectionBegin();
+
+    switch (LCD_DisplayType) {
+        case DISP_TYPE_NUMBER:
+            if (value <= 199) {
+                // Displayable value
+
+                unsigned char seg = 0;
+                if (value > 99) {
+                    // Value of 100 or larger - turn on the
+                    // MSB segment
+                    value -= 100;
+                    seg = 0x80;
+                }
+
+                if ((value < 10) && (seg == 0)) {
+                    // Single digit value - supress digit 2
+                    seg = 0;
+                }
+                else {
+                    // Calculate the segments of digit 2
+                    seg += LCD_SevenSeg[value / 10];
+                }
+                LCD_SetDigit12(seg);
+
+                // Calculate and set the value of digit 3
+                LCD_SetDigit3(LCD_SevenSeg[value % 10]);
+            }
+    }
+    LCD_CriticalSectionEnd();
 
 }
 
