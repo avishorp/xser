@@ -38,6 +38,8 @@
 //      RE3       IN       Pushbutton
 
 
+#define ROM rom
+
 // Set the Tri-State registers according to the
 // pin function table
 #define IO_Init() \
@@ -82,6 +84,9 @@
 
 // The toggle rate of the LCD outputs
 #define LCD_TOGGLE_RATE 10000
+
+// USB Stack configuration
+//#define USB_CDC_SUPPORT_HARDWARE_FLOW_CONTROL
 
 #endif
 

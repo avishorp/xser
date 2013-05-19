@@ -21,8 +21,8 @@ ROM USB_DEVICE_DESCRIPTOR device_dsc=
     0x02,                   // Subclass code
     0x01,                   // Protocol code
     USB_EP0_BUFF_SIZE,          // Max packet size for EP0, see usb_config.h
-    0x6666,                 // Vendor ID - Temporarily, use the prototype VID
-    0x87a3,                 // Product ID: Temporary, random number
+    USB_VID,
+    USB_PID_FULL,           // Product ID: Temporary, random number
     0x0100,                 // Device release number in BCD format
     0x01,                   // Manufacturer string index
     0x02,                   // Product string index
@@ -39,7 +39,7 @@ ROM BYTE configDescriptor1[]={
     3,                      // Number of interfaces in this cfg
     1,                      // Index value of this configuration
     0,                      // Configuration string index
-    _DEFAULT | _SELF,               // Attributes, see usb_device.h
+    _DEFAULT,               // Attributes, see usb_device.h
     50,                     // Max power consumption (2X mA)
 
     ////////////////////// HID
@@ -191,8 +191,15 @@ ROM struct{BYTE report[HID_RPT01_SIZE];}hid_rpt01={
 };           
 
 //Language code string descriptor
-ROM struct{BYTE bLength;BYTE bDscType;WORD string[1];}sd000={
-sizeof(sd000),USB_DESCRIPTOR_STRING,{0x0409}};
+ROM struct{
+    BYTE bLength;
+    BYTE bDscType;
+    WORD string[1];
+} sd000={
+    sizeof(sd000),
+    USB_DESCRIPTOR_STRING,
+    {0x0409}
+};
 
 //Manufacturer string descriptor
 ROM struct{BYTE bLength;BYTE bDscType;WORD string[4];}sd001={
@@ -218,8 +225,7 @@ ROM BYTE *ROM USB_SD_Ptr[]=
     (ROM BYTE *ROM)&sd002
 };
 
-#if defined(__18CXX)
 #pragma code
-#endif
+
 #endif
 /** EOF usb_descriptors.c ****************************************************/

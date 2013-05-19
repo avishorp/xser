@@ -1,33 +1,21 @@
 
-/** INCLUDES *******************************************************/
 #include "USB/usb.h"
 #include "USB/usb_function_cdc.h"
 #include "USB/usb_function_hid.h"
-
 #include "HardwareProfile.h"
-
-
-
-/** I N C L U D E S **********************************************************/
-
 #include "GenericTypeDefs.h"
 #include "Compiler.h"
 #include "usb_config.h"
 #include "USB/usb_device.h"
 #include "USB/usb.h"
-
 #include "HardwareProfile.h"
-
 #include "lcd.h"
 
-/** V A R I A B L E S ********************************************************/
-#if defined(__18CXX)
 #pragma udata
-#endif
+
+// CDC
 char USB_Out_Buffer[CDC_DATA_OUT_EP_SIZE];
 char RS232_Out_Data[CDC_DATA_IN_EP_SIZE];
-
-unsigned char  NextUSBOut;
 unsigned char    NextUSBOut;
 //char RS232_In_Data;
 unsigned char    LastRS232Out;  // Number of characters in the buffer
@@ -44,14 +32,9 @@ unsigned char ReceivedDataBuffer[64];
 //unsigned char ToSendDataBuffer[64] TX_DATA_BUFFER_ADDRESS;
 #pragma udata
 
-// If non-zero, displays a "wait for command" pattern
-unsigned char NoLCDCmd;
 
-// Decimal to 7-segment translation table
-ROM BYTE SevenSeg[] = {0x3f, 0x06, 0x5b, 0x4f, 0x66, 0x6d, 0x7d, 0x07, 0x7f, 0x6f };
-
-/** P R I V A T E  P R O T O T Y P E S ***************************************/
-static void InitializeSystem(void);
+// Prototypes
+/////////////
 void ProcessIO(void);
 void USBDeviceTasks(void);
 void YourHighPriorityISRCode();
@@ -63,61 +46,19 @@ void putcUSART(char c);
 unsigned char getcUSART ();
 
 
-#define REMAPPED_RESET_VECTOR_ADDRESS			0x00
+// TODO: Move these to a separate h file
+#define REMAPPED_RESET_VECTOR_ADDRESS		0x00
 #define REMAPPED_HIGH_INTERRUPT_VECTOR_ADDRESS	0x08
 #define REMAPPED_LOW_INTERRUPT_VECTOR_ADDRESS	0x18
 	
-//#pragma code REMAPPED_HIGH_INTERRUPT_VECTOR = REMAPPED_HIGH_INTERRUPT_VECTOR_ADDRESS
-//void Remapped_High_ISR (void)
-//{
-//     _asm goto YourHighPriorityISRCode _endasm
-//}
-
-//#pragma code REMAPPED_LOW_INTERRUPT_VECTOR = REMAPPED_LOW_INTERRUPT_VECTOR_ADDRESS
-//void Remapped_Low_ISR (void)
-//{
-//     _asm goto YourLowPriorityISRCode _endasm
-//}
-	
-
 #pragma code
 	
-	
-//These are your actual interrupt handling routines.
-//#pragma interrupt YourHighPriorityISRCode
-//void YourHighPriorityISRCode()
-//{
 
-//}	//This return will be a "retfie fast", since this is in a #pragma interrupt section
-
-#pragma interruptlow YourLowPriorityISRCode
-void YourLowPriorityISRCode()
-{
-
-}	//This return will be a "retfie", since this is in a #pragma interruptlow section 
-
-
-
-/** DECLARATIONS ***************************************************/
-#pragma code
-
-/******************************************************************************
- * Function:        void main(void)
- *
- * PreCondition:    None
- *
- * Input:           None
- *
- * Output:          None
- *
- * Side Effects:    None
- *
- * Overview:        Main program entry point.
- *
- * Note:            None
- *****************************************************************************/
 void main(void)
 {
+    char not_configured = 1;
+    long k;
+
     // Set the oscillator to 16MHz
     OSCCON = 0b01110000;
 
@@ -131,10 +72,17 @@ void main(void)
     RCONbits.IPEN = 1;
     INTCONbits.GIEH = 1;
 
-    while(1);
 
-    InitializeSystem();
+    LCD_SetDisplayType(DISP_TYPE_TEST);
+    
+    // Clear HID in and out handles
+    HIDOutHandle = 0;
+    HIDInHandle = 0;
 
+    UserInit();
+
+    // Initialize the USB
+    USBDeviceInit();	//usb_device.c.  Initializes USB module SFRs and firmware
 
     while(1)
     {
@@ -155,85 +103,19 @@ void main(void)
 
 		// Application-specific tasks.
 		// Application related code may be added here, or in the ProcessIO() function.
-        ProcessIO();        
+        ProcessIO();
+
+        if (not_configured) {
+            if((USBGetDeviceState() == CONFIGURED_STATE) &&
+               (USBIsDeviceSuspended() != TRUE))
+            {
+                // Transit to configured state
+                not_configured = 0;
+                LCD_SetDisplayType(DISP_TYPE_WAIT);
+            }
+        }
     }//end while
 }//end main
-
-
-/********************************************************************
- * Function:        static void InitializeSystem(void)
- *
- * PreCondition:    None
- *
- * Input:           None
- *
- * Output:          None
- *
- * Side Effects:    None
- *
- * Overview:        InitializeSystem is a centralize initialization
- *                  routine. All required USB initialization routines
- *                  are called from here.
- *
- *                  User application initialization routine should
- *                  also be called from here.                  
- *
- * Note:            None
- *******************************************************************/
-static void InitializeSystem(void)
-{
-    // Configure all pins as digital
-    ADCON1 = 0x0f;
-
-//	The USB specifications require that USB peripheral devices must never source
-//	current onto the Vbus pin.  Additionally, USB peripherals should not source
-//	current on D+ or D- when the host/hub is not actively powering the Vbus line.
-//	When designing a self powered (as opposed to bus powered) USB peripheral
-//	device, the firmware should make sure not to turn on the USB module and D+
-//	or D- pull up resistor unless Vbus is actively powered.  Therefore, the
-//	firmware needs some means to detect when Vbus is being powered by the host.
-//	A 5V tolerant I/O pin can be connected to Vbus (through a resistor), and
-// 	can be used to detect when Vbus is high (host actively powering), or low
-//	(host is shut down or otherwise not supplying power).  The USB firmware
-// 	can then periodically poll this I/O pin to know when it is okay to turn on
-//	the USB module/D+/D- pull up resistor.  When designing a purely bus powered
-//	peripheral device, it is not possible to source current on D+ or D- when the
-//	host is not actively providing power on Vbus. Therefore, implementing this
-//	bus sense feature is optional.  This firmware can be made to use this bus
-//	sense feature by making sure "USE_USB_BUS_SENSE_IO" has been defined in the
-//	HardwareProfile.h file.    
-    #if defined(USE_USB_BUS_SENSE_IO)
-    tris_usb_bus_sense = INPUT_PIN; // See HardwareProfile.h
-    #endif
-    
-//	If the host PC sends a GetStatus (device) request, the firmware must respond
-//	and let the host know if the USB peripheral device is currently bus powered
-//	or self powered.  See chapter 9 in the official USB specifications for details
-//	regarding this request.  If the peripheral device is capable of being both
-//	self and bus powered, it should not return a hard coded value for this request.
-//	Instead, firmware should check if it is currently self or bus powered, and
-//	respond accordingly.  If the hardware has been configured like demonstrated
-//	on the PICDEM FS USB Demo Board, an I/O pin can be polled to determine the
-//	currently selected power source.  On the PICDEM FS USB Demo Board, "RA2" 
-//	is used for	this purpose.  If using this feature, make sure "USE_SELF_POWER_SENSE_IO"
-//	has been defined in HardwareProfile - (platform).h, and that an appropriate I/O pin 
-//  has been mapped	to it.
-    #if defined(USE_SELF_POWER_SENSE_IO)
-    tris_self_power = INPUT_PIN;	// See HardwareProfile.h
-    #endif
-
-    // Clear HID in and out handles
-    HIDOutHandle = 0;
-    HIDInHandle = 0;
-
-    UserInit();
-
-    USBDeviceInit();	//usb_device.c.  Initializes USB module SFRs and firmware
-    					//variables to known states.
-
-
-
-}//end InitializeSystem
 
 
 
@@ -256,13 +138,14 @@ static void InitializeSystem(void)
  *****************************************************************************/
 void UserInit(void)
 {
-	unsigned char i;
+    unsigned char i;
+
     InitializeUSART();
 
-// 	 Initialize the arrays
-	for (i=0; i<sizeof(USB_Out_Buffer); i++)
+    // Initialize the arrays
+    for (i=0; i<sizeof(USB_Out_Buffer); i++)
     {
-		USB_Out_Buffer[i] = 0;
+        USB_Out_Buffer[i] = 0;
     }
 
     NextUSBOut = 0;
@@ -289,6 +172,15 @@ void UserInit(void)
  *****************************************************************************/
 void InitializeUSART(void)
 {
+    // Enable asynchronous transmission, 8-bit
+    // high baud rate
+    TXSTA1 = 0b00100100;
+
+    // Enable serial port & receiver
+    RCSTA1 = 0b10010000;
+
+    // Enable 16 bit Baud Rate generator
+    BAUDCON1bits.BRG16 = 1;
 
 
 }//end InitializeUSART
@@ -374,7 +266,7 @@ void mySetLineCodingHandler(void)
 #endif
 
 /******************************************************************************
- * Function:        void putcUSART(char c)
+ * Function:        void getcUSART( )
  *
  * PreCondition:    None
  *
@@ -495,8 +387,8 @@ void ProcessIO(void)
     //send the USB packet to the host.
 	if((USBUSARTIsTxTrfReady()) && (NextUSBOut > 0))
 	{
-		putUSBUSART(&USB_Out_Buffer[0], NextUSBOut);
-		NextUSBOut = 0;
+	  putUSBUSART(&USB_Out_Buffer[0], NextUSBOut);
+	  NextUSBOut = 0;
 	}
 
     CDCTxService();
@@ -505,11 +397,8 @@ void ProcessIO(void)
     if(!HIDRxHandleBusy(HIDOutHandle))
  
     {
-        // Stop the "Wait" pattern
-        NoLCDCmd = 0;
-
         // Display the LSB digit
-        digit = ReceivedDataBuffer[0] % 10;
+//        digit = ReceivedDataBuffer[0] % 10;
         // (in the prototype, we only have a single digit)
 
         // Re-arm the HID EP
@@ -712,7 +601,7 @@ void USBCBErrorHandler(void)
 void USBCBCheckOtherReq(void)
 {
     USBCheckCDCRequest();
-     USBCheckHIDRequest();
+    USBCheckHIDRequest();
 }//end
 
 
