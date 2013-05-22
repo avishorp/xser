@@ -10,12 +10,17 @@
 #include "USB/usb.h"
 #include "HardwareProfile.h"
 #include "lcd.h"
+#include "usart.h"
 
 #pragma udata
 
 // CDC
-char USB_Out_Buffer[CDC_DATA_OUT_EP_SIZE];
-char RS232_Out_Data[CDC_DATA_IN_EP_SIZE];
+char CDC_OutData[CDC_DATA_OUT_EP_SIZE]; // Host-to-TX
+char CDC_InData[CDC_DATA_IN_EP_SIZE];   // RX-to-Host
+unsigned char CDC_OutDataPointer;
+unsigned char CDC_OutDataCount;
+unsigned char CDC_InDataCount;
+
 unsigned char    NextUSBOut;
 //char RS232_In_Data;
 unsigned char    LastRS232Out;  // Number of characters in the buffer
@@ -36,9 +41,10 @@ unsigned char ReceivedDataBuffer[64];
 // Prototypes
 /////////////
 void ProcessIO(void);
-void USBDeviceTasks(void);
-void YourHighPriorityISRCode();
-void YourLowPriorityISRCode();
+void SystemInit();
+void CDC_Init();
+void CDC_Service();
+void USB_Device_Tasks(void);
 void USBCBSendResume(void);
 void UserInit(void);
 void InitializeUSART(void);
@@ -59,27 +65,26 @@ void main(void)
     char not_configured = 1;
     long k;
 
-    // Set the oscillator to 16MHz
-    OSCCON = 0b01110000;
+    SystemInit();
 
-    // Initialize the I/O pins
-    IO_Init();
+/*
+    k=0;
+    TRISCbits.TRISC7 = '1';
+    TRISCbits.TRISC6 = '1';
+    while(1) {
+//        USART_SendByte('Z');
+//       for(k=0; k < 100; k++);
 
-    // Initialize the LCD
-    LCD_Init();
-
-    // Enable interrupts
-    RCONbits.IPEN = 1;
-    INTCONbits.GIEH = 1;
-
-
-    LCD_SetDisplayType(DISP_TYPE_TEST);
-    
+        //if (USART_IsRxAvail()==1) {
+        if (PIR1bits.RCIF == 1) {
+            USART_SendByte(RCREG1);//USART_GetByte());
+        }
+}
+*/
     // Clear HID in and out handles
     HIDOutHandle = 0;
     HIDInHandle = 0;
 
-    UserInit();
 
     // Initialize the USB
     USBDeviceInit();	//usb_device.c.  Initializes USB module SFRs and firmware
@@ -101,112 +106,39 @@ void main(void)
         				  // instruction cycles) before it returns.
     				  
 
-		// Application-specific tasks.
-		// Application related code may be added here, or in the ProcessIO() function.
-        ProcessIO();
-
-        if (not_configured) {
-            if((USBGetDeviceState() == CONFIGURED_STATE) &&
-               (USBIsDeviceSuspended() != TRUE))
-            {
-                // Transit to configured state
-                not_configured = 0;
-                LCD_SetDisplayType(DISP_TYPE_WAIT);
-            }
-        }
+        CDC_Service();
     }//end while
 }//end main
 
 
 
-/******************************************************************************
- * Function:        void UserInit(void)
- *
- * PreCondition:    None
- *
- * Input:           None
- *
- * Output:          None
- *
- * Side Effects:    None
- *
- * Overview:        This routine should take care of all of the demo code
- *                  initialization that is required.
- *
- * Note:            
- *
- *****************************************************************************/
-void UserInit(void)
+void SystemInit()
 {
-    unsigned char i;
+    // Set the oscillator to 16MHz
+    OSCCON = 0b01110000;
 
-    InitializeUSART();
+    NextUSBOut = 0; // TODO: Remove
+    LastRS232Out = 0; // TODO: Remove
+    lastTransmission = 0; // TODO: Remove?
 
-    // Initialize the arrays
-    for (i=0; i<sizeof(USB_Out_Buffer); i++)
-    {
-        USB_Out_Buffer[i] = 0;
-    }
+    // Initialize the I/O pins
+    IO_Init();
 
-    NextUSBOut = 0;
-    LastRS232Out = 0;
-    lastTransmission = 0;
+    // Initialize the LCD & Enable its interrupts
+    LCD_Init();
+    RCONbits.IPEN = 1;
+    INTCONbits.GIEH = 1;
+    LCD_SetDisplayType(DISP_TYPE_TEST);
 
-}//end UserInit
+    // Initialize the USART
+    USART_Init();
+    USART_SetBaud(115200);
+    
+    // Initialize the CDC handler
+    CDC_Init();
+    
+    // TODO: Initialize the HID handler
 
-/******************************************************************************
- * Function:        void InitializeUSART(void)
- *
- * PreCondition:    None
- *
- * Input:           None
- *
- * Output:          None
- *
- * Side Effects:    None
- *
- * Overview:        This routine initializes the UART to 19200
- *
- * Note:            
- *
- *****************************************************************************/
-void InitializeUSART(void)
-{
-    // Enable asynchronous transmission, 8-bit
-    // high baud rate
-    TXSTA1 = 0b00100100;
-
-    // Enable serial port & receiver
-    RCSTA1 = 0b10010000;
-
-    // Enable 16 bit Baud Rate generator
-    BAUDCON1bits.BRG16 = 1;
-
-
-}//end InitializeUSART
-
-#define mDataRdyUSART() PIR1bits.RCIF
-#define mTxRdyUSART()   TXSTAbits.TRMT
-
-/******************************************************************************
- * Function:        void putcUSART(char c)
- *
- * PreCondition:    None
- *
- * Input:           char c - character to print to the UART
- *
- * Output:          None
- *
- * Side Effects:    None
- *
- * Overview:        Print the input character to the UART
- *
- * Note:            
- *
- *****************************************************************************/
-void putcUSART(char c)  
-{
-    TXREG = c;
 }
 
 
@@ -265,67 +197,55 @@ void mySetLineCodingHandler(void)
 }
 #endif
 
-/******************************************************************************
- * Function:        void getcUSART( )
- *
- * PreCondition:    None
- *
- * Input:           None
- *
- * Output:          unsigned char c - character to received on the UART
- *
- * Side Effects:    None
- *
- * Overview:        Print the input character to the UART
- *
- * Note:            
- *
- *****************************************************************************/
-unsigned char getcUSART ()
+void CDC_Init()
 {
-	char  c;
-
-	if (RCSTAbits.OERR)  // in case of overrun error
-	{                    // we should never see an overrun error, but if we do, 
-		RCSTAbits.CREN = 0;  // reset the port
-		c = RCREG;
-		RCSTAbits.CREN = 1;  // and keep going.
-	}
-	else
-    {
-		c = RCREG;
-    }
-// not necessary.  EUSART auto clears the flag when RCREG is cleared
-//	PIR1bits.RCIF = 0;    // clear Flag
-
-
-	return c;
+    CDC_OutDataCount = 0;
+    CDC_InDataCount = 0;
 }
 
-/********************************************************************
- * Function:        void ProcessIO(void)
- *
- * PreCondition:    None
- *
- * Input:           None
- *
- * Output:          None
- *
- * Side Effects:    None
- *
- * Overview:        This function is a place holder for other user
- *                  routines. It is a mixture of both USB and
- *                  non-USB tasks.
- *
- * Note:            None
- *******************************************************************/
-void ProcessIO(void)
+// Perform all CDC related tasks
+void CDC_Service()
 {
-    unsigned char digit;
-  
-    // User Application USB tasks
+    // If the device is not configured yet, do nothing
     if((USBDeviceState < CONFIGURED_STATE)||(USBSuspendControl==1)) return;
 
+    // Host-to-Serial
+    /////////////////
+    if (CDC_OutDataCount > 0) {
+        // Data is waiting to be transmitted on the serial
+        // port (from previous USB transaction)
+        if (USART_IsTxEmpty()) {
+            // The serial port is ready for transmission
+            USART_SendByte(CDC_OutData[CDC_OutDataPointer]);
+            CDC_OutDataPointer++;
+            CDC_OutDataCount--;
+        }
+    }
+    else {
+        // No data waiting to be transmitted - check if there is
+        // data received from the USB
+        CDC_OutDataCount = getsUSBUSART(CDC_OutData, 64);
+        CDC_OutDataPointer = 0;
+    }
+
+    // Serial-to-Host
+    /////////////////
+
+    if (USBUSARTIsTxTrfReady())
+    {
+CDC_InData[0] = 'P';
+        putUSBUSART(&CDC_InData[0], 1);
+    }
+
+    CDCTxService();
+
+
+/*
+
+
+
+
+    }
 	if (RS232_Out_Data_Rdy == 0)  // only check for new USB buffer if the old RS232 buffer is
 	{						  // empty.  This will cause additional USB packets to be NAK'd
 		LastRS232Out = getsUSBUSART(RS232_Out_Data,64); //until the buffer is free.
@@ -404,7 +324,7 @@ void ProcessIO(void)
         // Re-arm the HID EP
         HIDOutHandle = HIDRxPacket(HID_EP, (BYTE*)&ReceivedDataBuffer, 64);
     }
-
+*/
 
 }//end ProcessIO
 
