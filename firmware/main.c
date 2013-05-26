@@ -19,6 +19,7 @@ char CDC_OutData[CDC_DATA_OUT_EP_SIZE]; // Host-to-TX
 char CDC_InData[CDC_DATA_IN_EP_SIZE];   // RX-to-Host
 unsigned char CDC_OutDataPointer;
 unsigned char CDC_OutDataCount;
+unsigned char CDC_InDataPointer;
 unsigned char CDC_InDataCount;
 
 unsigned char    NextUSBOut;
@@ -200,7 +201,10 @@ void mySetLineCodingHandler(void)
 void CDC_Init()
 {
     CDC_OutDataCount = 0;
+    CDC_OutDataPointer = 0;
     CDC_InDataCount = 0;
+    CDC_InDataPointer = 0;
+
 }
 
 // Perform all CDC related tasks
@@ -230,15 +234,29 @@ void CDC_Service()
 
     // Serial-to-Host
     /////////////////
+    if (USART_IsRxAvail()) {
+        // A character has been received in the
+        // serial port
+        if (CDC_InDataCount < CDC_DATA_IN_EP_SIZE) {
+            // Enough space available in the input
+            // buffer
+            CDC_InData[CDC_InDataPointer] = USART_GetByte();
+            CDC_InDataPointer++;
+            CDC_InDataCount++;
+        }
+    }
 
     if (USBUSARTIsTxTrfReady())
     {
-CDC_InData[0] = 'P';
-        putUSBUSART(&CDC_InData[0], 1);
+        if (CDC_InDataCount > 0) {
+            // Data ready to be sent
+            putUSBUSART(&CDC_InData[0], CDC_InDataCount);
+            CDC_InDataCount = 0;
+            CDC_InDataPointer = 0;
+        }
     }
 
     CDCTxService();
-
 
 /*
 
