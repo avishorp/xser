@@ -133,7 +133,7 @@ void SystemInit()
 
     // Initialize the USART
     USART_Init();
-    USART_SetBaud(115200);
+    USART_SetBaud(600);
     
     // Initialize the CDC handler
     CDC_Init();
@@ -191,9 +191,9 @@ void mySetLineCodingHandler(void)
         //Update the baudrate info in the CDC driver
         CDCSetBaudRate(cdc_notice.GetLineCoding.dwDTERate.Val);
         
-        dwBaud.Val = (DWORD)(GetSystemClock()/4)/line_coding.dwDTERate.Val-1;
-        SPBRG = dwBaud.v[0];
-        SPBRGH = dwBaud.v[1];
+//        dwBaud.Val = (DWORD)(GetSystemClock()/4)/line_coding.dwDTERate.Val-1;
+//        SPBRG = dwBaud.v[0];
+//        SPBRGH = dwBaud.v[1];
     }    
 }
 #endif

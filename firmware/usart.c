@@ -8,7 +8,6 @@ BOOL USART_LB_Avail;
 
 void USART_Init()
 {
-#ifndef DBG_SERIAL_LOOPBACK
     // Enable asynchronous transmission, 8-bit
     // high baud rate
     TXSTA1 = 0b00100100;
@@ -18,14 +17,14 @@ void USART_Init()
 
     // Enable 16 bit Baud Rate generator
     BAUDCON1 = 0b00001000;
-#else
+
+#ifdef DBG_SERIAL_LOOPBACK
     USART_LB_Avail = FALSE;
 #endif
 }
 
 void USART_SetBaud(unsigned long baud)
 {
-#ifndef DBG_SERIAL_LOOPBACK
     // Calculate the divisor required for the
     // specified baud rate (page 282 in the datasheet)
     unsigned long div = (CLOCK_FREQ/4)/baud - 1;
@@ -33,7 +32,7 @@ void USART_SetBaud(unsigned long baud)
     // Set the registers
     SPBRG = div & 0xff;
     SPBRGH = ((unsigned char)(div >> 8)) & 0xff;
-#endif
+
 }
 
 void USART_SetEncoding(unsigned char enc)
@@ -45,6 +44,8 @@ void USART_LB_SendByte(unsigned char b)
 #ifdef DBG_SERIAL_LOOPBACK
     USART_LB_Avail = TRUE;
     USART_LB_Char = b;
+
+    TXREG1 = b;
 #endif
 }
 
@@ -63,14 +64,14 @@ unsigned char USART_LB_GetByte()
 BOOL USART_LB_IsRxAvail()
 {
 #ifdef DBG_SERIAL_LOOPBACK
-    return USART_LB_Avail;
+    return USART_LB_Avail && (TXSTA1bits.TRMT==1);
 #endif
 }
 
 BOOL USART_LB_IsTxEmpty()
 {
 #ifdef DBG_SERIAL_LOOPBACK
-    return !USART_LB_Avail;
+    return !USART_LB_IsRxAvail();
 #endif
 }
 
