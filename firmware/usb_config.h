@@ -101,7 +101,7 @@
 #define CDC_DATA_IN_EP_SIZE     64
 
 // TODO: Replace this awful name
-#define USB_CDC_SET_LINE_CODING_HANDLER mySetLineCodingHandler
+#define USB_CDC_SET_LINE_CODING_HANDLER CDC_SetLineCodingHandler
 
 
 //------------------------------------------------------------------------------                                                

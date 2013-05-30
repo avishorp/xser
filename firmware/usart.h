@@ -19,6 +19,9 @@ void USART_LB_SendByte(unsigned char b);
 unsigned char USART_LB_GetByte();
 BOOL USART_LB_IsRxAvail();
 
+// Maximal supported baud rate
+#define MAX_BAUD_RATE 230400
+
 // Macros
 #ifndef DBG_SERIAL_LOOPBACK
 
