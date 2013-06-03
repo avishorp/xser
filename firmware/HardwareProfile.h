@@ -89,7 +89,7 @@
 //#define USB_CDC_SUPPORT_HARDWARE_FLOW_CONTROL
 
 // Debugging options
-#define DBG_SERIAL_LOOPBACK
+//#define DBG_SERIAL_LOOPBACK
 
 #endif
 

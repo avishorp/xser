@@ -22,20 +22,13 @@ unsigned char CDC_OutDataCount;
 unsigned char CDC_InDataPointer;
 unsigned char CDC_InDataCount;
 
-unsigned char    NextUSBOut;
-//char RS232_In_Data;
-unsigned char    LastRS232Out;  // Number of characters in the buffer
-unsigned char    RS232cp;       // current position within the buffer
-unsigned char RS232_Out_Data_Rdy = 0;
-USB_HANDLE  lastTransmission;
-
 // HID
-USB_HANDLE HIDOutHandle = 0;    //USB handle.  Must be initialized to 0 at startup.
-USB_HANDLE HIDInHandle = 0;     //USB handle.  Must be initialized to 0 at startup.
+USB_HANDLE HID_OutHandle = 0;    //USB handle.  Must be initialized to 0 at startup.
+USB_HANDLE HID_InHandle = 0;     //USB handle.  Must be initialized to 0 at startup.
 
 #pragma udata USB_VARS
-unsigned char ReceivedDataBuffer[64];
-//unsigned char ToSendDataBuffer[64] TX_DATA_BUFFER_ADDRESS;
+unsigned char HID_OutDataBuffer[64]; // Host-to-xser
+//unsigned char HID_InDataBuffer[64] TX_DATA_BUFFER_ADDRESS; // xser-to-Host
 #pragma udata
 
 
@@ -45,6 +38,8 @@ void ProcessIO(void);
 void SystemInit();
 void CDC_Init();
 void CDC_Service();
+void HID_Init();
+void HID_Service();
 void USB_Device_Tasks(void);
 void USBCBSendResume(void);
 void UserInit(void);
@@ -63,7 +58,7 @@ unsigned char getcUSART ();
 
 void main(void)
 {
-    char not_configured = 1;
+    char is_configured = 0;
     long k;
 
     SystemInit();
@@ -83,8 +78,8 @@ void main(void)
 }
 */
     // Clear HID in and out handles
-    HIDOutHandle = 0;
-    HIDInHandle = 0;
+    HID_OutHandle = 0;
+    HID_InHandle = 0;
 
 
     // Initialize the USB
@@ -93,21 +88,21 @@ void main(void)
     while(1)
     {
 	// Check bus status and service USB interrupts.
-        USBDeviceTasks(); // Interrupt or polling method.  If using polling, must call
-        				  // this function periodically.  This function will take care
-        				  // of processing and responding to SETUP transactions 
-        				  // (such as during the enumeration process when you first
-        				  // plug in).  USB hosts require that USB devices should accept
-        				  // and process SETUP packets in a timely fashion.  Therefore,
-        				  // when using polling, this function should be called 
-        				  // regularly (such as once every 1.8ms or faster** [see 
-        				  // inline code comments in usb_device.c for explanation when
-        				  // "or faster" applies])  In most cases, the USBDeviceTasks() 
-        				  // function does not take very long to execute (ex: <100 
-        				  // instruction cycles) before it returns.
-    				  
+        USBDeviceTasks();    				  
 
-        CDC_Service();
+        if (is_configured) {
+            // Device is already configured
+            CDC_Service();
+            HID_Service();
+        }
+        else {
+            // Device is not configured
+
+            if (USBDeviceState == CONFIGURED_STATE) {
+                is_configured = 1;
+                LCD_SetDisplayType(DISP_TYPE_WAIT);
+            }
+        }
     }//end while
 }//end main
 
@@ -118,12 +113,9 @@ void SystemInit()
     // Set the oscillator to 16MHz
     OSCCON = 0b01110000;
 
-    NextUSBOut = 0; // TODO: Remove
-    LastRS232Out = 0; // TODO: Remove
-    lastTransmission = 0; // TODO: Remove?
-
     // Initialize the I/O pins
     IO_Init();
+    ANSELCbits.ANSC7 = 0; // Make the RX pin digital
 
     // Initialize the LCD & Enable its interrupts
     LCD_Init();
@@ -137,45 +129,12 @@ void SystemInit()
     
     // Initialize the CDC handler
     CDC_Init();
-    
-    // TODO: Initialize the HID handler
+    // Initialize the HID handler
+    HID_Init();
 
 }
 
 
-/******************************************************************************
- * Function:        void mySetLineCodingHandler(void)
- *
- * PreCondition:    USB_CDC_SET_LINE_CODING_HANDLER is defined
- *
- * Input:           None
- *
- * Output:          None
- *
- * Side Effects:    None
- *
- * Overview:        This function gets called when a SetLineCoding command
- *                  is sent on the bus.  This function will evaluate the request
- *                  and determine if the application should update the baudrate
- *                  or not.
- *
- * Note:            
- *
- *****************************************************************************/
-void CDC_SetLineCodingHandler(void)
-{
-    DWORD_VAL dwBaud;
-
-    //If the request is not in a valid range
-    if(cdc_notice.GetLineCoding.dwDTERate.Val <= MAX_BAUD_RATE)
-    {
-        //Update the baudrate info in the CDC driver
-        CDCSetBaudRate(cdc_notice.GetLineCoding.dwDTERate.Val);
-
-        // Set the actual rate
-        USART_SetBaud(cdc_notice.GetLineCoding.dwDTERate.Val);
-    }    
-}
 
 void CDC_Init()
 {
@@ -325,7 +284,57 @@ void CDC_Service()
 
 }//end ProcessIO
 
+// Handle SetLineCoding requests
+void CDC_SetLineCodingHandler(void)
+{
+    DWORD_VAL dwBaud;
 
+    //If the request is not in a valid range
+    if(cdc_notice.GetLineCoding.dwDTERate.Val <= MAX_BAUD_RATE)
+    {
+        //Update the baudrate info in the CDC driver
+        CDCSetBaudRate(cdc_notice.GetLineCoding.dwDTERate.Val);
+
+        // Set the actual rate
+        USART_SetBaud(cdc_notice.GetLineCoding.dwDTERate.Val);
+    }
+}
+
+// Global HID Handler initialization
+void HID_Init()
+{
+    HID_InHandle = 0;
+    HID_OutHandle = 0;
+}
+
+// Initialize the HID endpoint (called after configuration)
+void HID_EP_Init()
+
+
+
+{
+    //enable the HID endpoint
+    USBEnableEndpoint(HID_EP,USB_IN_ENABLED|USB_OUT_ENABLED|USB_HANDSHAKE_ENABLED|USB_DISALLOW_SETUP);
+
+    //Re-arm the OUT endpoint for the next packet
+    HID_OutHandle = HIDRxPacket(HID_EP,(BYTE*)&HID_OutDataBuffer,64);
+}
+
+void HID_Service()
+{
+    // Handle HID packets
+    if(!HIDRxHandleBusy(HID_OutHandle))
+
+    {
+        // Display the LSB digit
+        LCD_SetDisplayType(DISP_TYPE_NUMBER);
+        LCD_SetDisplayValue(HID_OutDataBuffer[0]);
+
+        // Re-arm the HID EP
+        HID_OutHandle = HIDRxPacket(HID_EP, (BYTE*)&HID_OutDataBuffer, 64);
+    }
+
+}
 
 // ******************************************************************************************************
 // ************** USB Callback Functions ****************************************************************
@@ -571,14 +580,6 @@ void USBCBInitEP(void)
 {
     //Enable the CDC data endpoints
     CDCInitEP();
-
-       //enable the HID endpoint
-    USBEnableEndpoint(HID_EP,USB_IN_ENABLED|USB_OUT_ENABLED|USB_HANDSHAKE_ENABLED|USB_DISALLOW_SETUP);
-    //Re-arm the OUT endpoint for the next packet
-   // USBOutHandle = HIDRxPacket(HID_EP,(BYTE*)&ReceivedDataBuffer,64);
-
-    //Re-arm the OUT endpoint for the next packet
-    HIDOutHandle = HIDRxPacket(HID_EP,(BYTE*)&ReceivedDataBuffer,64);
 }
 
 /********************************************************************
@@ -791,6 +792,7 @@ BOOL USER_USB_CALLBACK_EVENT_HANDLER(int event, void *pdata, WORD size)
             break;
         case EVENT_CONFIGURED: 
             USBCBInitEP();
+            HID_EP_Init();
             break;
         case EVENT_SET_DESCRIPTOR:
             USBCBStdSetDscHandler();
