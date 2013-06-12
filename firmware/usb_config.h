@@ -113,8 +113,8 @@
 //(ex: UART_RTS) and initialization macros (ex: mInitRTSPin()) are present and 
 //defined correctly in the HardwareProfile - [platform name].h file.  
 //------------------------------------------------------------------------------                                                
-//#define USB_CDC_SUPPORT_DSR_REPORTING   //Signal from UART peripheral device, to CDC/USB host.  Indicates UART peripheral is ready to receive data and/or commands.
-//#define USB_CDC_SUPPORT_DTR_SIGNALING   //Signal sent from the USB/CDC host, down to the UART peripheral device
+#define USB_CDC_SUPPORT_DSR_REPORTING   //Signal from UART peripheral device, to CDC/USB host.  Indicates UART peripheral is ready to receive data and/or commands.
+#define USB_CDC_SUPPORT_DTR_SIGNALING   //Signal sent from the USB/CDC host, down to the UART peripheral device
 //#define USB_CDC_SUPPORT_HARDWARE_FLOW_CONTROL   //Implements RTS/CTS UART flow control.
 
 //RTS is GPIO output signal from CDC/USB host micro (indicates UART Rx buffer 

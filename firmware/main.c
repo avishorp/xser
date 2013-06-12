@@ -63,20 +63,6 @@ void main(void)
 
     SystemInit();
 
-/*
-    k=0;
-    TRISCbits.TRISC7 = '1';
-    TRISCbits.TRISC6 = '1';
-    while(1) {
-//        USART_SendByte('Z');
-//       for(k=0; k < 100; k++);
-
-        //if (USART_IsRxAvail()==1) {
-        if (PIR1bits.RCIF == 1) {
-            USART_SendByte(RCREG1);//USART_GetByte());
-        }
-}
-*/
     // Clear HID in and out handles
     HID_OutHandle = 0;
     HID_InHandle = 0;
@@ -116,6 +102,7 @@ void SystemInit()
     // Initialize the I/O pins
     IO_Init();
     ANSELCbits.ANSC7 = 0; // Make the RX pin digital
+    ANSELCbits.ANSC2 = 0; // Make the DSR pin digital
 
     // Initialize the LCD & Enable its interrupts
     LCD_Init();

@@ -71,6 +71,13 @@
 #define LCD_SEG_G3   LATBbits.LATB5
 #define LCD_COMMON   LATAbits.LATA1
 
+// Define DTS and DTR pins (see usb_function_cdc.h)
+#define UART_DTS     PORTCbits.RC2
+#define UART_DTR     PORTCbits.RC1
+#define mInitDTSPin()
+#define mInitDTRPin()
+
+
 // Masks defining the bits related to the LCD
 // in each port
 #define RA_LCD_BITS  0b11111110
