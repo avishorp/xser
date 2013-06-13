@@ -37,7 +37,7 @@ unsigned char HID_OutDataBuffer[64]; // Host-to-xser
 void ProcessIO(void);
 void SystemInit();
 void CDC_Init();
-void CDC_Service();
+unsigned char CDC_Service();
 void HID_Init();
 void HID_Service();
 void USB_Device_Tasks(void);
@@ -60,6 +60,7 @@ void main(void)
 {
     char is_configured = 0;
     long k;
+    unsigned char activity;
 
     SystemInit();
 
@@ -78,15 +79,16 @@ void main(void)
 
         if (is_configured) {
             // Device is already configured
-            CDC_Service();
+            activity = CDC_Service();
             HID_Service();
+            LCD_SetDisplayValue(activity);
         }
         else {
             // Device is not configured
 
             if (USBDeviceState == CONFIGURED_STATE) {
                 is_configured = 1;
-                LCD_SetDisplayType(DISP_TYPE_WAIT);
+                LCD_SetDisplayType(DISP_TYPE_ACT);
             }
         }
     }//end while
@@ -133,10 +135,13 @@ void CDC_Init()
 }
 
 // Perform all CDC related tasks
-void CDC_Service()
+// Returns activity indication - bit 0 indicates RX activity, bit 1 TX activity
+unsigned char CDC_Service()
 {
+    unsigned char activity = 0;
+
     // If the device is not configured yet, do nothing
-    if((USBDeviceState < CONFIGURED_STATE)||(USBSuspendControl==1)) return;
+    if((USBDeviceState < CONFIGURED_STATE)||(USBSuspendControl==1)) return 0;
 
     // Host-to-Serial
     /////////////////
@@ -148,6 +153,7 @@ void CDC_Service()
             USART_SendByte(CDC_OutData[CDC_OutDataPointer]);
             CDC_OutDataPointer++;
             CDC_OutDataCount--;
+            activity = 0x01;
         }
     }
     else {
@@ -168,6 +174,7 @@ void CDC_Service()
             CDC_InData[CDC_InDataPointer] = USART_GetByte();
             CDC_InDataPointer++;
             CDC_InDataCount++;
+            activity |= 0x02;
         }
     }
 
@@ -182,6 +189,8 @@ void CDC_Service()
     }
 
     CDCTxService();
+
+    return activity;
 
 /*
 

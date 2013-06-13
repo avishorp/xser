@@ -25,6 +25,8 @@ ROM unsigned char LCD_SevenSeg[] = {0x3f, 0x06, 0x5b, 0x4f, 0x66, 0x6d, 0x7d, 0x
 #pragma interrupt LCD_Interrupt_Handler
 void LCD_Interrupt_Handler()
 {
+    unsigned char t;
+
     // Clear Timer 2 interrupt flag
     PIR1bits.TMR2IF = 0;
 
@@ -55,6 +57,29 @@ void LCD_Interrupt_Handler()
             LCD_State <<= 1;
             if (LCD_State == 0x00)
                 LCD_State = 0x01;
+        }
+        else if (LCD_DisplayType == DISP_TYPE_ACT) {
+            // RX State
+            if ((LCD_State & 0x03) > 0)
+                // Increment the state
+                LCD_State = (LCD_State & 0xf0) + ((LCD_State & 0x03)+1);
+
+            if ((LCD_State & 0x03) == 2)
+                t = 0;
+            else
+                t = 0x01; // Turn on segment A
+
+            // TX State
+            if ((LCD_State & 0x30) > 0)
+                // Increment the state
+                LCD_State = (LCD_State & 0x0f) + ((LCD_State & 0x30) + 0x10);
+
+            if ((LCD_State & 0x30) == 0x20)
+                t &= 0b111110111; // Turn off segment D
+            else
+                t |= 0b000001000; // Turn on segment D
+
+            LCD_SetDigit3(t);
         }
     }
 }
@@ -148,6 +173,12 @@ void LCD_SetDisplayType(unsigned char type)
         case DISP_TYPE_WAIT:
             LCD_State = 0x01;
             break;
+
+        case DISP_TYPE_ACT:
+            LCD_SetDigit12(0b01110111); // 'A'
+            LCD_SetDigit3(0b00001001);
+            LCD_State = 0;
+            break;
     }
 
     LCD_CriticalSectionEnd();
@@ -184,6 +215,16 @@ void LCD_SetDisplayValue(unsigned char value)
                 // Calculate and set the value of digit 3
                 LCD_SetDigit3(LCD_SevenSeg[value % 10]);
             }
+            break;
+
+        case DISP_TYPE_ACT:
+            // RX toggle
+            if (((LCD_State & 0x03)==0) && (value & 0x01))
+                LCD_State |= 0b00000001;
+
+            // TX toggle
+            if (((LCD_State & 0x30)==0) && (value & 0x02))
+                LCD_State |= 0b00010000;
     }
     LCD_CriticalSectionEnd();
 
