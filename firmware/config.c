@@ -36,5 +36,4 @@
 #pragma config LVP = OFF
 
 // Disable extended instruction set
-#pragma config XINST = OFF
-
+#pragma config XINST = ON
