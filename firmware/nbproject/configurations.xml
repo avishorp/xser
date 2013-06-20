@@ -22,6 +22,8 @@
       <itemPath>lcd.c</itemPath>
       <itemPath>usart.h</itemPath>
       <itemPath>usart.c</itemPath>
+      <itemPath>ui.h</itemPath>
+      <itemPath>ui.c</itemPath>
     </logicalFolder>
     <logicalFolder name="ExternalFiles"
                    displayName="Important Files"
