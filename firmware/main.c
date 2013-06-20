@@ -9,7 +9,7 @@
 #include "USB/usb_device.h"
 #include "USB/usb.h"
 #include "HardwareProfile.h"
-#include "lcd.h"
+#include "ui.h"
 #include "usart.h"
 
 #pragma udata
@@ -39,7 +39,7 @@ void SystemInit();
 void CDC_Init();
 unsigned char CDC_Service();
 void HID_Init();
-void HID_Service();
+unsigned char HID_Service();
 void USB_Device_Tasks(void);
 void USBCBSendResume(void);
 void UserInit(void);
@@ -60,7 +60,7 @@ void main(void)
 {
     char is_configured = 0;
     long k;
-    unsigned char activity;
+    unsigned char events = 0;
 
     SystemInit();
 
@@ -74,23 +74,26 @@ void main(void)
 
     while(1)
     {
+        events = 0;
+        
 	// Check bus status and service USB interrupts.
         USBDeviceTasks();    				  
 
         if (is_configured) {
             // Device is already configured
-            activity = CDC_Service();
-            HID_Service();
-            LCD_SetDisplayValue(activity);
+            events |= CDC_Service();
+            events |= HID_Service();
         }
         else {
             // Device is not configured
 
             if (USBDeviceState == CONFIGURED_STATE) {
                 is_configured = 1;
-                LCD_SetDisplayType(DISP_TYPE_ACT);
+                events = EVENT_USBCONF;
             }
         }
+
+        UI_Service(events);
     }//end while
 }//end main
 
@@ -106,11 +109,11 @@ void SystemInit()
     ANSELCbits.ANSC7 = 0; // Make the RX pin digital
     ANSELCbits.ANSC2 = 0; // Make the DSR pin digital
 
-    // Initialize the LCD & Enable its interrupts
-    LCD_Init();
+    // Initialize the UI module & Enable its interrupts
+    // (required for LCD operation)
+    UI_Init();
     RCONbits.IPEN = 1;
     INTCONbits.GIEH = 1;
-    LCD_SetDisplayType(DISP_TYPE_TEST);
 
     // Initialize the USART
     USART_Init();
@@ -305,9 +308,6 @@ void HID_Init()
 
 // Initialize the HID endpoint (called after configuration)
 void HID_EP_Init()
-
-
-
 {
     //enable the HID endpoint
     USBEnableEndpoint(HID_EP,USB_IN_ENABLED|USB_OUT_ENABLED|USB_HANDSHAKE_ENABLED|USB_DISALLOW_SETUP);
@@ -316,20 +316,23 @@ void HID_EP_Init()
     HID_OutHandle = HIDRxPacket(HID_EP,(BYTE*)&HID_OutDataBuffer,64);
 }
 
-void HID_Service()
+unsigned char HID_Service()
 {
+    unsigned char event = 0;
+
     // Handle HID packets
     if(!HIDRxHandleBusy(HID_OutHandle))
 
     {
         // Display the LSB digit
-        LCD_SetDisplayType(DISP_TYPE_NUMBER);
-        LCD_SetDisplayValue(HID_OutDataBuffer[0]);
+        UI_SetPortNumber(HID_OutDataBuffer[0]);
+        event = EVENT_HIDCMD;
 
         // Re-arm the HID EP
         HID_OutHandle = HIDRxPacket(HID_EP, (BYTE*)&HID_OutDataBuffer, 64);
     }
 
+    return event;
 }
 
 // ******************************************************************************************************
