@@ -26,7 +26,7 @@ ROM USB_DEVICE_DESCRIPTOR device_dsc=
     0x0100,                 // Device release number in BCD format
     0x01,                   // Manufacturer string index
     0x02,                   // Product string index
-    0x00,                   // Device serial number string index
+    USB_SERIAL_STRING_DESCRIPTOR, // Device serial number string index
     0x01                    // Number of possible configurations
 };
 
@@ -217,6 +217,15 @@ ROM BYTE *ROM USB_CD_Ptr[]=
 {
     (ROM BYTE *ROM)&configDescriptor1
 };
+
+#pragma udata USB_VARS
+// Serial number string descriptor
+// NOTE: This descriptor resides in RAM, not in ROM.
+//       The software is expected to fill the data
+//       upon initialization
+sdSerial_t sdSerial;
+
+#pragma romdata
 //Array of string descriptors
 ROM BYTE *ROM USB_SD_Ptr[]=
 {
@@ -226,6 +235,7 @@ ROM BYTE *ROM USB_SD_Ptr[]=
 };
 
 #pragma code
+
 
 #endif
 /** EOF usb_descriptors.c ****************************************************/

@@ -249,6 +249,7 @@ firmware design flexibility.
 #include "HardwareProfile.h"
 
 #include "../USB/usb_device_local.h"
+#include "usb_device.h"
 
 
 #if defined(USB_USE_MSD)
@@ -2221,7 +2222,15 @@ static void USBStdGetDscHandler(void)
                 //USB_NUM_STRING_DESCRIPTORS was introduced as optional in release v2.3.  In v2.4 and
                 //  later it is now manditory.  This should be defined in usb_config.h and should
                 //  indicate the number of string descriptors.
-                if(SetupPkt.bDscIndex<USB_NUM_STRING_DESCRIPTORS)
+                if (SetupPkt.bDscIndex == USB_SERIAL_STRING_DESCRIPTOR) {
+                    // The string descriptor holding the serial number
+                    // has a special treatment - it comes from the RAM
+                    // instead of the ROM
+                    inPipes[0].info.Val = USB_EP0_RAM | USB_EP0_BUSY | USB_EP0_INCLUDE_ZERO;
+                    inPipes[0].pSrc.bRam = (BYTE*)&(USB_SERIAL_STRING_VANAME);
+                    inPipes[0].wCount.Val = *inPipes[0].pSrc.bRam;
+                }
+                else if(SetupPkt.bDscIndex<USB_NUM_STRING_DESCRIPTORS)
                 {
                     //Get a pointer to the String descriptor requested
                     inPipes[0].pSrc.bRom = *(USB_SD_Ptr+SetupPkt.bDscIndex);

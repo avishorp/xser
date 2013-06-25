@@ -10,10 +10,6 @@
 
 #define USB_EP0_BUFF_SIZE		8	// Valid Options: 8, 16, 32, or 64 bytes.
 								// Using larger options take more SRAM, but
-								// does not provide much advantage in most types
-								// of applications.  Exceptions to this, are applications
-								// that use EP0 IN or OUT for sending large amounts of
-								// application related data.
 									
 #define USB_MAX_NUM_INT     	2   // For tracking Alternate Setting
 
@@ -58,7 +54,16 @@
 
 #define USB_SUPPORT_DEVICE
 
-#define USB_NUM_STRING_DESCRIPTORS 3
+#define USB_NUM_STRING_DESCRIPTORS 4
+
+// Serial number string descriptor
+//////////////////////////////////
+
+// The string descriptor used for the serial number
+#define USB_SERIAL_STRING_DESCRIPTOR 3
+// The variable name from which the serial number
+// descriptor will be taken
+#define USB_SERIAL_STRING_VANAME     sdSerial
 
 // TODO: Check if anything here is needed
 //#define USB_INTERRUPT_LEGACY_CALLBACKS
@@ -80,7 +85,7 @@
 // Endpoints
 ////////////
 
-#define USB_MAX_EP_NUMBER	    4
+#define USB_MAX_EP_NUMBER	    3
 
 // HID - One endpoint (1)
 #define HID_INTF_ID             0
@@ -133,5 +138,14 @@
 
 //#define USB_CDC_SUPPORT_ABSTRACT_CONTROL_MANAGEMENT_CAPABILITIES_D2 //Send_Break command
 #define USB_CDC_SUPPORT_ABSTRACT_CONTROL_MANAGEMENT_CAPABILITIES_D1 //Set_Line_Coding, Set_Control_Line_State, Get_Line_Coding, and Serial_State commands
+
+// Serial number string descriptor
+typedef struct {
+    BYTE bLength;
+    BYTE bDscType;
+    WORD string[8];
+} sdSerial_t;
+
+extern sdSerial_t sdSerial;
 
 #endif //USBCFG_H

@@ -36,11 +36,11 @@ unsigned char HID_OutDataBuffer[64]; // Host-to-xser
 /////////////
 void ProcessIO(void);
 void SystemInit();
+void USB_SetSerialNumber();
 void CDC_Init();
 unsigned char CDC_Service();
 void HID_Init();
 unsigned char HID_Service();
-void USB_Device_Tasks(void);
 void USBCBSendResume(void);
 void UserInit(void);
 void InitializeUSART(void);
@@ -119,6 +119,10 @@ void SystemInit()
     USART_Init();
     USART_SetBaud(600);
     
+    // Read the device's serial number from the EEPROM
+    // and set it as the USB seroal number
+    USB_SetSerialNumber();
+
     // Initialize the CDC handler
     CDC_Init();
     // Initialize the HID handler
@@ -126,6 +130,42 @@ void SystemInit()
 
 }
 
+
+// Read the serial number from the EEPROM
+void USB_SetSerialNumber()
+{
+    char i;
+
+    // Initialize the string descriptor
+    sdSerial.bLength = sizeof(sdSerial);
+    sdSerial.bDscType = USB_DESCRIPTOR_STRING;
+
+    // EEPROM read
+    EECON1 = 0;
+
+    for(i=0; i<8; i++)
+    {
+        sdSerial.string[i] = ('A' + i);
+    }
+
+    /*
+    for(i=0; i < 8; i++) {
+        EEADR = i;
+        EEDATA = '0' + i;
+
+      	_asm
+	//Now unlock sequence to set WR (make sure interrupts are disabled before executing this)
+	MOVLW 0x55
+	MOVWF EECON2, 0
+	MOVLW 0xAA
+	MOVWF EECON2, 0
+	BSF EECON1, 1, 0		//Performs write
+	_endasm
+	while(EECON1bits.WR);	//Wait until complete (relevant when programming EEPROM, not important when programming flash since processor stalls during flash program)
+	EECON1bits.WREN = 0;  	//Good practice now to clear the WREN bit, as further protection against any accidental activation of self write/erase operations.
+    }
+     */
+}
 
 
 void CDC_Init()
