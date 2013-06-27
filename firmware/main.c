@@ -12,6 +12,7 @@
 #include "ui.h"
 #include "usart.h"
 
+
 #pragma udata
 
 // CDC
@@ -136,35 +137,27 @@ void USB_SetSerialNumber()
 {
     char i;
 
+    // A Pointer to the ID location
+    rom char far *pID=(rom char far *)0x200000;
+
     // Initialize the string descriptor
     sdSerial.bLength = sizeof(sdSerial);
     sdSerial.bDscType = USB_DESCRIPTOR_STRING;
 
-    // EEPROM read
-    EECON1 = 0;
+    // Temporarily disable interrupts
+    INTCONbits.GIE=0;
 
     for(i=0; i<8; i++)
     {
-        sdSerial.string[i] = ('A' + i);
+        // Read the EEPROM data into the serial number
+        // variable
+        sdSerial.string[i] = '0' + (*pID++);
+
     }
 
-    /*
-    for(i=0; i < 8; i++) {
-        EEADR = i;
-        EEDATA = '0' + i;
-
-      	_asm
-	//Now unlock sequence to set WR (make sure interrupts are disabled before executing this)
-	MOVLW 0x55
-	MOVWF EECON2, 0
-	MOVLW 0xAA
-	MOVWF EECON2, 0
-	BSF EECON1, 1, 0		//Performs write
-	_endasm
-	while(EECON1bits.WR);	//Wait until complete (relevant when programming EEPROM, not important when programming flash since processor stalls during flash program)
-	EECON1bits.WREN = 0;  	//Good practice now to clear the WREN bit, as further protection against any accidental activation of self write/erase operations.
-    }
-     */
+    // Reenable interrupts
+    TBLPTRU=0;            // sect. 3.1 C18 User's guide...
+    INTCONbits.GIE=1;
 }
 
 
