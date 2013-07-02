@@ -2,8 +2,14 @@
 //
 // Main include file for libxser
 
+#ifndef __XSER_H__
+#define __XSER_H__
+
 #include <string>
 #include <vector>
+#include <memory>
+
+namespace xser {
 
 // An interface representing an xser device instance connected to the computer.
 // This interface is generalized to include devices both in DFU mode and in normal
@@ -18,6 +24,9 @@ public:
 	// Get the serial number associated with the instance
 	virtual std::string& get_serial_number() const = 0;
 };
+
+typedef std::vector <std::tr1::shared_ptr<const xser_instance_ifx>> xser_instances_t;
+
 
 
 
@@ -52,10 +61,15 @@ public:
 
 class xser_instance_manager_ifx {
 public:
-	virtual const std::vector <const xser_instance_ifx&> get_xser_instances() const;
+	virtual const xser_instances_t& get_xser_instances() const = 0;
 
-	virtual void rescan();
+	virtual void rescan() = 0;
 };
+
+}; // namespace xser
+
+
+#endif // #ifdef __XSER_H__
 
 
 
