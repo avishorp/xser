@@ -11,6 +11,7 @@
 #include "HardwareProfile.h"
 #include "ui.h"
 #include "usart.h"
+#include "xser_hid.h"
 
 
 #pragma udata
@@ -29,8 +30,19 @@ USB_HANDLE HID_InHandle = 0;     //USB handle.  Must be initialized to 0 at star
 
 #pragma udata USB_VARS
 unsigned char HID_OutDataBuffer[64]; // Host-to-xser
-//unsigned char HID_InDataBuffer[64] TX_DATA_BUFFER_ADDRESS; // xser-to-Host
+unsigned char HID_InDataBuffer[64];// TX_DATA_BUFFER_ADDRESS; // xser-to-Host
 #pragma udata
+
+// HID Commands
+///////////////
+// These command codes are transmitted in the first byte
+// of a HID packet
+
+
+#define XSER_HID_CMD_GET_FW_VER    1
+#define XSER_HID_CMD_SET_NUMBER    2
+#define XSER_HID_CMD_ENTER_DFU     3
+
 
 
 // Prototypes
@@ -355,11 +367,25 @@ unsigned char HID_Service()
 
     // Handle HID packets
     if(!HIDRxHandleBusy(HID_OutHandle))
-
     {
-        // Display the LSB digit
-        UI_SetPortNumber(HID_OutDataBuffer[0]);
-        event = EVENT_HIDCMD;
+        //memset(HID_InDataBuffer, 0, sizeof(HID_InDataBuffer));
+        switch (HID_OutDataBuffer[0]) {
+
+        case XSER_HID_GET_VERSION:
+            HID_InDataBuffer[0] = 22;
+            HID_InDataBuffer[1] = 33;
+            break;
+
+        case XSER_HID_SET_NUMBER:
+            // Display the LSB digit
+            UI_SetPortNumber(HID_OutDataBuffer[0]);
+            event = EVENT_HIDCMD;
+
+            break;
+
+        case XSER_HID_ENTER_DFU:
+            break;
+        }
 
         // Re-arm the HID EP
         HID_OutHandle = HIDRxPacket(HID_EP, (BYTE*)&HID_OutDataBuffer, 64);
