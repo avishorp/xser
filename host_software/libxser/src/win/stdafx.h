@@ -10,6 +10,12 @@
 #define WIN32_LEAN_AND_MEAN             // Exclude rarely-used stuff from Windows headers
 // Windows Header Files:
 #include <windows.h>
+#include "setupapi.h"
+#include <initguid.h>
+#include "usbiodef.h"
+#include <devguid.h>
+#include <devpkey.h>
+#include <hidclass.h>
 
 
 

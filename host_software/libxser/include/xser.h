@@ -9,13 +9,24 @@
 #include <vector>
 #include <memory>
 
+#ifdef _WIN32 || _WIN64	
+#define EXPORT __declspec(dllexport)
+#else
+#define EXPORT
+#endif
+
+// VID & PID of the XSer unit
+#define XSER_VID     L"1D50"
+#define XSER_PID     L"6059"
+#define XSER_PID_DFU L"0692"
+
 namespace xser {
 
 // An interface representing an xser device instance connected to the computer.
 // This interface is generalized to include devices both in DFU mode and in normal
 // operating mode
 
-class xser_instance_ifx {
+class EXPORT xser_instance_ifx {
 public:
 
 	// Determine whether the device is in DFU mode
@@ -28,11 +39,9 @@ public:
 typedef std::vector <std::tr1::shared_ptr<const xser_instance_ifx>> xser_instances_t;
 
 
-
-
 // An interface representig an xser device instance connected to the computer and
 // operating in normal (operational) mode
-class xser_instance_oper_ifx : public xser_instance_ifx {
+class EXPORT xser_instance_oper_ifx : public xser_instance_ifx {
 public:
 
 	// Find the COM/tty number associated with the device
@@ -50,7 +59,7 @@ public:
 
 // An interface representing an xser device instance connected to the computer and
 // operating in DFU (firmware upgrade) mode
-class xser_instance_dfu_ifx: public xser_instance_ifx {
+class EXPORT xser_instance_dfu_ifx: public xser_instance_ifx {
 public:
 	// Program a new firmware
 	virtual void program_firmware(void* image, int len) const = 0;
@@ -59,7 +68,7 @@ public:
 	virtual void finalize_programming() const = 0;
 };
 
-class xser_instance_manager_ifx {
+class EXPORT xser_instance_manager_ifx {
 public:
 	virtual const xser_instances_t& get_xser_instances() const = 0;
 

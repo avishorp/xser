@@ -2,8 +2,9 @@
 
 #include "xser.h"
 #include <vector>
+#include <iostream>
 
-class win_xser_instance_manager : public xser::xser_instance_manager_ifx {
+class EXPORT win_xser_instance_manager : public xser::xser_instance_manager_ifx {
 
 public:
 	// Get the Singleton instance
@@ -21,6 +22,9 @@ public:
 	virtual const xser::xser_instances_t& get_xser_instances() const;
 
 	virtual void rescan();
+
+protected:
+	virtual std::wostream& get_log_stream() { return std::wcout; }
 
 private:
 	xser::xser_instances_t xser_instances;
