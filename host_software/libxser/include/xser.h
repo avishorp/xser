@@ -8,8 +8,11 @@
 #include <string>
 #include <vector>
 #include <memory>
+#include <iostream>
 
-#ifdef _WIN32 || _WIN64	
+
+
+#if defined(_WIN32) || defined(_WIN64)
 #define EXPORT __declspec(dllexport)
 #else
 #define EXPORT
@@ -19,6 +22,8 @@
 #define XSER_VID     L"1D50"
 #define XSER_PID     L"6059"
 #define XSER_PID_DFU L"0692"
+
+
 
 namespace xser {
 
@@ -73,6 +78,8 @@ public:
 	virtual const xser_instances_t& get_xser_instances() const = 0;
 
 	virtual void rescan() = 0;
+
+	virtual void set_verbose_stream(std::ostream&) = 0;
 };
 
 }; // namespace xser

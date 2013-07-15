@@ -4,6 +4,7 @@
 #include <vector>
 #include <iostream>
 
+
 class EXPORT win_xser_instance_manager : public xser::xser_instance_manager_ifx {
 
 public:
@@ -24,9 +25,13 @@ public:
 	virtual void rescan();
 
 protected:
-	virtual std::wostream& get_log_stream() { return std::wcout; }
+	virtual std::ostream& get_verbose_stream() { return *verbose_stream; }
+
+public:
+	virtual void set_verbose_stream(std::ostream& vs) { verbose_stream = &vs; }
 
 private:
 	xser::xser_instances_t xser_instances;
+	std::ostream* verbose_stream;
 };
 

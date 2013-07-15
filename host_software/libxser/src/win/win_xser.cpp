@@ -7,6 +7,7 @@
 #include <string>
 #include <regex>
 
+
 using namespace std;
 using namespace xser;
 
@@ -35,8 +36,6 @@ const xser_instances_t& win_xser_instance_manager::get_xser_instances() const
 
 void win_xser_instance_manager::rescan()
 {
-	vector<shared_ptr<int>> z;
-
 	// First, clean the list of current instances
 	while(xser_instances.size() > 0) {
 		std::tr1::shared_ptr<const xser_instance_ifx> xs = xser_instances.back();
@@ -71,7 +70,7 @@ void win_xser_instance_manager::rescan()
 
 	int hwid_length = wcslen(HWID_STRING);
 
-	get_log_stream() << L"Starting device scan" << endl;
+	get_verbose_stream() << "Starting device scan" << endl;
 
 	for(int device_index = 0; ; device_index++) {
 
@@ -86,16 +85,18 @@ void win_xser_instance_manager::rescan()
 		DWORD hardware_id_type;
 		r = SetupDiGetDeviceProperty(device_info_set, &device_info_data, &DEVPKEY_Device_HardwareIds, &hardware_id_type, (PBYTE)hardware_id, 300, NULL, 0);
 		if (!r) {
-			printf("Device %d - Cannot obtain Hardware ID", device_index);
+			get_verbose_stream() << "Device " << device_index << " - Cannot obtain Hardware ID" << endl;
 			continue;
 		}
 
-		get_log_stream() << L"Device " << device_index << L" (HwID=" << hardware_id << ") ... ";
+		wstring hardware_id_wstr(hardware_id);
+		string hardware_id_str(hardware_id_wstr.begin(), hardware_id_wstr.end());
+		get_verbose_stream() << "Device " << device_index << " (HwID=" << hardware_id_str << ") ... ";
 
 		// Compare it against the desired hardware ID
 		if (_wcsnicmp(HWID_STRING, hardware_id, hwid_length) == 0) {
 			// Hardware ID matche
-			get_log_stream() << L"Match" << endl;
+			get_verbose_stream() << "Match" << endl;
 
 			// Initialize a comm association structure
 //			comm_assoc_t comm_assoc;
@@ -136,7 +137,7 @@ void win_xser_instance_manager::rescan()
 		}
 		else
 			// Hardware ID mismatch
-			get_log_stream() << L"No match" << endl;
+			get_verbose_stream() << "No match" << endl;
 	}
 }
 
