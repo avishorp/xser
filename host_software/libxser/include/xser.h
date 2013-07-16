@@ -11,8 +11,28 @@
 #include <iostream>
 
 
+//////////// Determine build type
 
-#if defined(_WIN32) || defined(_WIN64)
+#if (defined(_WIN32) || defined(_WIN64)) && defined(_MSC_VER)
+
+#define BUILD_WINDOWS
+
+#else
+
+#if defined(__linux__) && defined(__GNUC__)
+
+#define BUILD_LINUX
+
+#else
+#error Only two build types are supported: MSVC under Windows or GCC under Linux
+#endif
+
+#endif
+
+////////////////////////////////////
+
+
+#ifdef BUILD_WINDOWS
 #define EXPORT __declspec(dllexport)
 #else
 #define EXPORT
@@ -81,6 +101,20 @@ public:
 
 	virtual void set_verbose_stream(std::ostream&) = 0;
 };
+
+#ifdef BUILD_WINDOWS
+
+EXPORT xser_instance_manager_ifx& win_xser_get_instance_manager();
+
+#define get_xser_instance_manager win_xser_get_instance_manager
+
+#else
+
+EXPORT xser_instance_manager_ifx& linux_xser_get_instance_manager();
+
+#define get_xser_instance_manager() linux_xser_get_instance_manager()
+
+#endif
 
 }; // namespace xser
 

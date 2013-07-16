@@ -1,11 +1,13 @@
 #include "xser.h"
-#include "win_xser.h"
 
 using namespace xser;
+using namespace std;
+
 
 int main(char* argv[], int argc)
 {
-	xser_instance_manager_ifx& xim = win_xser_instance_manager::get_instance();
+	xser_instance_manager_ifx& xim = get_xser_instance_manager();
 
+	xim.set_verbose_stream(cout);
 	xim.rescan();
 }

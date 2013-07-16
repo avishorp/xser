@@ -17,6 +17,13 @@ using namespace xser;
 // Default value for the instance variable
 xser_instance_manager_ifx* win_xser_instance_manager::instance = 0;
 
+// Implementation of the platform-dependent helper function defined in xser.h
+EXPORT xser_instance_manager_ifx& xser::win_xser_get_instance_manager()
+{
+	return win_xser_instance_manager::get_instance();
+}
+
+
 xser_instance_manager_ifx& win_xser_instance_manager::get_instance()
 {
 	if (!instance)
