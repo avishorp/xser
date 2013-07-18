@@ -1,6 +1,5 @@
 
-#include <abstract_xser_instance_oper.h>
-#include <hid_ifx.h>
+#include <xser.h>
 #include <string>
 #include <stdint.h>
 #include "../../../firmware/xser_hid.h"

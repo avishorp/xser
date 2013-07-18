@@ -10,7 +10,6 @@
     <ClInclude Include="src/win/stdafx.h" />
     <ClInclude Include="src/win/targetver.h" />
     <ClInclude Include="src\win\win_xser.h" />
-    <ClInclude Include="src\abstract_xser_instance_oper.h" />
-    <ClInclude Include="src\hid_ifx.h" />
+    <ClInclude Include="src\win\xser_instance_oper.h" />
   </ItemGroup>
 </Project>
