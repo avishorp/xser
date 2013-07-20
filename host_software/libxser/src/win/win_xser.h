@@ -3,6 +3,7 @@
 #include "xser.h"
 #include <vector>
 #include <iostream>
+#include <hid_ifx.h>
 
 
 class EXPORT win_xser_instance_manager : public xser::xser_instance_manager_ifx {
@@ -34,4 +35,5 @@ private:
 	xser::xser_instances_t xser_instances;
 	std::ostream* verbose_stream;
 };
+
 

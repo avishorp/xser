@@ -60,7 +60,7 @@ public:
 	virtual bool is_dfu_mode() const = 0;
 
 	// Get the serial number associated with the instance
-	virtual std::string& get_serial_number() const = 0;
+	virtual const std::string& get_serial_number() const = 0;
 };
 
 typedef std::vector <std::tr1::shared_ptr<const xser_instance_ifx>> xser_instances_t;
@@ -132,7 +132,7 @@ public:
 
 	// Get the serial number associated with the instance
 	// Requires platform specific implementation
-	virtual std::string& get_serial_number() const = 0;
+	virtual const std::string& get_serial_number() const = 0;
 
 	// From xser_instance_oper_ifx
 	//////////////////////////////

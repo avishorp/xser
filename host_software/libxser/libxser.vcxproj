@@ -78,7 +78,9 @@
   <ItemGroup>
     <ClInclude Include="src/win/stdafx.h" />
     <ClInclude Include="src/win/targetver.h" />
+    <ClInclude Include="src\win\win_hid_ifx.h" />
     <ClInclude Include="src\win\win_xser.h" />
+    <ClInclude Include="src\win\win_xser_instance_oper.h" />
     <ClInclude Include="src\win\xser_instance_oper.h" />
   </ItemGroup>
   <ItemGroup>
@@ -90,12 +92,14 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
       </PrecompiledHeader>
     </ClCompile>
+    <ClCompile Include="src\win\win_hid_ifx.cpp" />
     <ClCompile Include="src\win\win_xser.cpp" />
     <ClCompile Include="src/win/stdafx.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Create</PrecompiledHeader>
     </ClCompile>
     <ClCompile Include="src\abstract_xser_instance_oper.cpp" />
+    <ClCompile Include="src\win\win_xser_instance_oper.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

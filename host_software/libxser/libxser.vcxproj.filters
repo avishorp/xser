@@ -5,11 +5,15 @@
     <ClCompile Include="src/win/stdafx.cpp" />
     <ClCompile Include="src\abstract_xser_instance_oper.cpp" />
     <ClCompile Include="src\win\win_xser.cpp" />
+    <ClCompile Include="src\win\win_xser_instance_oper.cpp" />
+    <ClCompile Include="src\win\win_hid_ifx.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src/win/stdafx.h" />
     <ClInclude Include="src/win/targetver.h" />
     <ClInclude Include="src\win\win_xser.h" />
     <ClInclude Include="src\win\xser_instance_oper.h" />
+    <ClInclude Include="src\win\win_xser_instance_oper.h" />
+    <ClInclude Include="src\win\win_hid_ifx.h" />
   </ItemGroup>
 </Project>

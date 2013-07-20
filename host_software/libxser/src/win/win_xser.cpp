@@ -3,6 +3,7 @@
 
 #include "stdafx.h"
 #include "win_xser.h"
+#include "win_xser_instance_oper.h"
 #include <memory>
 #include <string>
 #include <regex>
@@ -105,42 +106,30 @@ void win_xser_instance_manager::rescan()
 			// Hardware ID matche
 			get_verbose_stream() << "Match" << endl;
 
-			// Initialize a comm association structure
-//			comm_assoc_t comm_assoc;
-//			comm_assoc.port_number = -1;
-//			comm_assoc.hid_path = NULL;
-/*
-			// Scan through the children of the device
-			DWORD children_type;
-			WCHAR children[1000];
-			r = SetupDiGetDeviceProperty(device_info_set, &device_info_data, &DEVPKEY_Device_Children, &children_type, (PBYTE)children, 1000, NULL, 0);
-			if (!r) {
-				printf("  Cannot obtain children\n");
-				continue;
-			}
+			// Obtain the serial number of the device
+			DWORD instance_id_size;
+			r = SetupDiGetDeviceInstanceId(device_info_set, &device_info_data, NULL, 0, &instance_id_size);
+			wchar_t* instance_id = new wchar_t[instance_id_size + 1];
 
-			int w;
-			LPCWSTR t = (LPCWSTR)children;
-			while(1) {
-				w = wcslen(t);
-				if (w == 0)
-					break;
+			r = SetupDiGetDeviceInstanceId(device_info_set, &device_info_data, instance_id, instance_id_size, NULL);
+			if (!r)
+				throw runtime_error("Could not get all device instance ID");
 
-				wprintf(L"  Child: %s\n", t);
-				process_child(world_device_info_set, t, &comm_assoc);
-				t += w;
-				t++;
-			}
+			wstring instance_id_wstr(instance_id);
+			string instance_id_str(instance_id_wstr.begin(), instance_id_wstr.end());
 
-			// Check if we have all we need
-			if ((comm_assoc.port_number == -1) || (comm_assoc.hid_path == NULL)) {
-				printf("  Faild to obtain one or more of the required device properties\n");
-				continue;
-			}
+			int k = instance_id_str.rfind('\\');
+			string serial(instance_id_str.substr(k + 1, instance_id_str.length() - k - 1));
+
+			get_verbose_stream() << ">> " << serial << endl;
+
+			// Create a new xser instance object
+			auto_ptr<xser_instance_ifx> x(new win_xser_instance_oper(serial, device_info_set, &device_info_data));
+
+
 
 			// Time do the actual work
-			set_port_display((const comm_assoc_t*)&comm_assoc);
-*/
+//			set_port_display((const comm_assoc_t*)&comm_assoc);
 		}
 		else
 			// Hardware ID mismatch
