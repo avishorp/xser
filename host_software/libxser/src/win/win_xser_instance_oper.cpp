@@ -74,8 +74,6 @@ void win_xser_instance_oper::process_child(HDEVINFO world_device_info_set, LPCWS
 	if (!r)
 		throw runtime_error("Could not obtain the device class");
 
-//	wprintf(L"    Device class: %s\n", class_name);
-
 	if (wcscmp(class_name, L"HIDClass") == 0) {
 		// Process the HID side
 
@@ -140,7 +138,6 @@ void win_xser_instance_oper::process_child(HDEVINFO world_device_info_set, LPCWS
 		r = SetupDiGetDeviceProperty(world_device_info_set, &device_info_data, &DEVPKEY_Device_FriendlyName, &desc_type, (PBYTE)desc, 300, NULL, 0);
 		if (!r)
 			throw runtime_error("Could not obtain port description");
-//		wprintf(L"    Port description: %s\n", desc);
 
 		std::tr1::wcmatch mr;
 		bool match_result = std::tr1::regex_search<WCHAR>(desc, mr, regex_com);

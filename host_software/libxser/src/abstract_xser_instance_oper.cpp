@@ -13,9 +13,10 @@ void abstract_xser_instance_oper::set_com_display(int number) const {
 	const hid_ifx& h = get_hid_io();
 
 	// Create the request buffer
-	int8_t req_buf[64];
+	int8_t req_buf[2];
 	memset(req_buf, 0, sizeof(req_buf));
 	req_buf[0] = XSER_HID_SET_NUMBER;
+	req_buf[1] = number;
 
 	h.send_packet(req_buf, sizeof(req_buf));
 

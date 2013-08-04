@@ -45,11 +45,7 @@ const xser_instances_t& win_xser_instance_manager::get_xser_instances() const
 void win_xser_instance_manager::rescan()
 {
 	// First, clean the list of current instances
-	while(xser_instances.size() > 0) {
-		std::tr1::shared_ptr<const xser_instance_ifx> xs = xser_instances.back();
-		xser_instances.pop_back();
-		xs.reset();
-	}
+	xser_instances.clear();
 
 	// Scan all the USB devices connected to the computer
 	HDEVINFO device_info_set = INVALID_HANDLE_VALUE;
@@ -124,12 +120,11 @@ void win_xser_instance_manager::rescan()
 			get_verbose_stream() << ">> " << serial << endl;
 
 			// Create a new xser instance object
-			auto_ptr<xser_instance_ifx> x(new win_xser_instance_oper(serial, device_info_set, &device_info_data));
+			shared_ptr<xser_instance_ifx> xsi(new win_xser_instance_oper(serial, device_info_set, &device_info_data));
 
-
-
-			// Time do the actual work
-//			set_port_display((const comm_assoc_t*)&comm_assoc);
+			// Add it to the list
+			xser_instances.push_back(xsi);
+			std::static_pointer_cast<xser_instance_oper_ifx>(xsi)->set_com_display(std::static_pointer_cast<xser_instance_oper_ifx>(xsi)->get_associated_com_number());
 		}
 		else
 			// Hardware ID mismatch
