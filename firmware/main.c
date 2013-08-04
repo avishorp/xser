@@ -368,6 +368,7 @@ unsigned char HID_Service()
     // Handle HID packets
     if(!HIDRxHandleBusy(HID_OutHandle))
     {
+
         //memset(HID_InDataBuffer, 0, sizeof(HID_InDataBuffer));
         switch (HID_OutDataBuffer[0]) {
 
@@ -378,7 +379,7 @@ unsigned char HID_Service()
 
         case XSER_HID_SET_NUMBER:
             // Display the LSB digit
-            UI_SetPortNumber(HID_OutDataBuffer[0]);
+            UI_SetPortNumber(HID_OutDataBuffer[1]);
             event = EVENT_HIDCMD;
 
             break;

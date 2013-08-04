@@ -10,11 +10,12 @@
 #define NO_PORT_NUMBER          0
 
 unsigned char UI_State;
-unsigned char UI_PortNumber;
-unsigned int timer;
+volatile unsigned char UI_PortNumber;
+unsigned long timer;
 
-#define PORTNUM_TO_ACT_TIME     1000
-#define ACT_TO_PORTNUM_TIME     5000
+#define SEC 4000
+#define PORTNUM_TO_ACT_TIME     5*SEC
+#define ACT_TO_PORTNUM_TIME     20*SEC
 
 
 
@@ -77,13 +78,15 @@ void UI_Service(unsigned char events) {
             if (timer > 0) {
                 // Update activity indicators
                 LCD_SetDisplayValue(events & 0x03);
-                timer = ACT_TO_PORTNUM_TIME;
+                if ((events & 0x03) != 0)
+                    timer = ACT_TO_PORTNUM_TIME;
             }
-            else
-                if (UI_PortNumber != NO_PORT_NUMBER)
+            else {
+               if (UI_PortNumber != NO_PORT_NUMBER)
                     // After long inacticity, switch to port
                     // numbwe display
                     UI_SwitchToPORTNUM();
+            }
             break;
     }
 }
