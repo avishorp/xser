@@ -64,6 +64,7 @@ public:
 };
 
 typedef std::vector <std::tr1::shared_ptr<const xser_instance_ifx>> xser_instances_t;
+typedef xser_instances_t::const_iterator xser_instances_iter_t;
 
 
 // An interface representig an xser device instance connected to the computer and
@@ -102,6 +103,15 @@ public:
 	virtual void rescan() = 0;
 
 	virtual void set_verbose_stream(std::ostream&) = 0;
+
+	virtual void update_all_adaptors() = 0;
+};
+
+class EXPORT abstract_xser_instance_manager : public xser_instance_manager_ifx {
+
+public:
+	virtual void update_all_adaptors();
+
 };
 
 // This class is a partial implementation of an object representing an xser instance

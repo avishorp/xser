@@ -10,4 +10,5 @@ int main(char* argv[], int argc)
 
 	xim.set_verbose_stream(cout);
 	xim.rescan();
+	xim.update_all_adaptors();
 }
