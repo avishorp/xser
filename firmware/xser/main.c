@@ -12,6 +12,7 @@
 #include "ui.h"
 #include "usart.h"
 #include "xser_hid.h"
+#include "dfu_magic.h"
 
 
 #pragma udata

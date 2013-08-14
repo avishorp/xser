@@ -2,7 +2,7 @@
 #include <xser.h>
 #include <string>
 #include <stdint.h>
-#include "../../../firmware/xser_hid.h"
+#include "../../../firmware/xser/xser_hid.h"
 
 using namespace std;
 using namespace xser;
