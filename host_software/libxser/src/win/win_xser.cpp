@@ -124,7 +124,6 @@ void win_xser_instance_manager::rescan()
 
 			// Add it to the list
 			xser_instances.push_back(xsi);
-			std::static_pointer_cast<xser_instance_oper_ifx>(xsi)->set_com_display(std::static_pointer_cast<xser_instance_oper_ifx>(xsi)->get_associated_com_number());
 		}
 		else
 			// Hardware ID mismatch

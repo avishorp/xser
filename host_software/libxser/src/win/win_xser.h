@@ -6,7 +6,7 @@
 #include <hid_ifx.h>
 
 
-class EXPORT win_xser_instance_manager : public xser::xser_instance_manager_ifx {
+class EXPORT win_xser_instance_manager : public xser::abstract_xser_instance_manager {
 
 public:
 	// Get the Singleton instance

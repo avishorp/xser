@@ -84,6 +84,7 @@
     <ClInclude Include="src\win\xser_instance_oper.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="abstract_xser_instance_manager.cpp" />
     <ClCompile Include="src/win/dllmain.cpp">
       <CompileAsManaged Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">false</CompileAsManaged>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
