@@ -254,8 +254,6 @@ void TableReadPostIncrement(void);
 #pragma code
 void UserInit(void)
 {
-    mInitAllLEDs();		//Init them off.
-
 	//Initialize bootloader state variables
 	BootState = IDLE;
 	ProgrammedPointer = INVALID_ADDRESS;	

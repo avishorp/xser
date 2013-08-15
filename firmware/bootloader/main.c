@@ -86,121 +86,6 @@ bootloader to use more program memory.
 #include "io_cfg.h"                     
 #include "BootPIC18NonJ.h"
 
-/** C O N F I G U R A T I O N ************************************************/
-// Note: For a complete list of the available config pragmas and their values, 
-// see the compiler documentation, and/or click "Help --> Topics..." and then 
-// select "PIC18 Config Settings" in the Language Tools section.
-
-#if defined(PIC18F4550_PICDEM_FS_USB)		// Configuration bits for PICDEM FS USB Demo Board
- 	#if defined(__18F4550) || defined(__18F4553)
-        #pragma config PLLDIV   = 5         // (20 MHz crystal on PICDEM FS USB board)
-        #pragma config CPUDIV   = OSC1_PLL2	
-        #pragma config USBDIV   = 2         // Clock source from 96MHz PLL/2
-        #pragma config FOSC     = HSPLL_HS
-        #pragma config FCMEN    = OFF
-        #pragma config IESO     = OFF
-        #pragma config PWRT     = OFF
-        #pragma config BOR      = ON
-        #pragma config BORV     = 3
-        #pragma config VREGEN   = ON		//USB Voltage Regulator
-        #pragma config WDT      = OFF
-        #pragma config WDTPS    = 32768
-        #pragma config MCLRE    = ON
-        #pragma config LPT1OSC  = OFF
-        #pragma config PBADEN   = OFF		//NOTE: modifying this value here won't have an effect
-        									//on the application.  See the top of the main() function.
-        									//By default the RB4 I/O pin is used to detect if the
-        									//firmware should enter the bootloader or the main application
-        									//firmware after a reset.  In order to do this, it needs to
-        									//configure RB4 as a digital input, thereby changing it from
-        									//the reset value according to this configuration bit.
-//      #pragma config CCP2MX   = ON
-        #pragma config STVREN   = ON
-        #pragma config LVP      = OFF
-//      #pragma config ICPRT    = OFF       // Dedicated In-Circuit Debug/Programming
-        #pragma config XINST    = OFF       // Extended Instruction Set
-        #pragma config CP0      = OFF
-        #pragma config CP1      = OFF
-//      #pragma config CP2      = OFF
-//      #pragma config CP3      = OFF
-        #pragma config CPB      = OFF
-//      #pragma config CPD      = OFF
-        #pragma config WRT0     = OFF
-        #pragma config WRT1     = OFF
-//      #pragma config WRT2     = OFF
-//      #pragma config WRT3     = OFF
-        #pragma config WRTB     = OFF       // Boot Block Write Protection
-        #pragma config WRTC     = OFF
-//      #pragma config WRTD     = OFF
-        #pragma config EBTR0    = OFF
-        #pragma config EBTR1    = OFF
-//      #pragma config EBTR2    = OFF
-//      #pragma config EBTR3    = OFF
-        #pragma config EBTRB    = OFF
-	#endif	//18F4550 and 18F4553
-
-
-#elif defined(PIC18F4550_PICDEM_FS_USB_K50)
-        #pragma config PLLSEL   = PLL3X     // 3X PLL multiplier selected
-        #pragma config CFGPLLEN = OFF       // PLL turned on during execution
-        #pragma config CPUDIV   = NOCLKDIV  // 1:1 mode (for 48MHz CPU)
-        #pragma config LS48MHZ  = SYS48X8   // Clock div / 8 in Low Speed USB mode
-        #pragma config FOSC     = INTOSCIO  // HFINTOSC selected at powerup, no clock out
-        #pragma config PCLKEN   = OFF       // Primary oscillator driver
-        #pragma config FCMEN    = OFF       // Fail safe clock monitor
-        #pragma config IESO     = OFF       // Internal/external switchover (two speed startup)
-        #pragma config nPWRTEN  = OFF       // Power up timer
-        #pragma config BOREN    = SBORDIS   // BOR enabled
-        #pragma config nLPBOR   = ON        // Low Power BOR
-        #pragma config WDTEN    = SWON      // Watchdog Timer controlled by SWDTEN
-        #pragma config WDTPS    = 32768     // WDT postscalar
-        #pragma config PBADEN   = OFF       // Port B Digital/Analog Powerup Behavior
-        #pragma config SDOMX    = RC7       // SDO function location
-        #pragma config LVP      = OFF       // Low voltage programming
-        #pragma config MCLRE    = ON        // MCLR function enabled (RE3 disabled)
-        #pragma config STVREN   = ON        // Stack overflow reset
-        //#pragma config ICPRT  = OFF       // Dedicated ICPORT program/debug pins enable
-        #pragma config XINST    = OFF       // Extended instruction set
-
-//If using the YOUR_BOARD hardware platform (see usbcfg.h), uncomment below and add pragmas
-//#elif defined(YOUR_BOARD)
-		//Add the configuration pragmas here for your hardware platform
-		//#pragma config ... 		= ...
-#elif defined(LOW_PIN_COUNT_USB_DEVELOPMENT_KIT)
-        //14K50
-        #if !defined(__18F14K50) && !defined(__18F13K50) && !defined(__18LF14K50) && !defined(__18LF13K50)
-            #error Wrong processor selected for the selected demo board.
-        #endif
-        #pragma config CPUDIV = NOCLKDIV
-        #pragma config USBDIV = OFF
-        #pragma config FOSC   = HS
-        #pragma config PLLEN  = ON
-        #pragma config FCMEN  = OFF
-        #pragma config IESO   = OFF
-        #pragma config PWRTEN = OFF
-        #pragma config BOREN  = OFF
-        #pragma config BORV   = 30
-        #pragma config WDTEN  = OFF
-        #pragma config WDTPS  = 32768
-        #pragma config MCLRE  = OFF
-        #pragma config HFOFST = OFF
-        #pragma config STVREN = ON
-        #pragma config LVP    = OFF
-        #pragma config XINST  = OFF
-        #pragma config BBSIZ  = OFF
-        #pragma config CP0    = OFF
-        #pragma config CP1    = OFF
-        #pragma config CPB    = OFF
-        #pragma config WRT0   = OFF
-        #pragma config WRT1   = OFF
-        #pragma config WRTB   = OFF
-        #pragma config WRTC   = OFF
-        #pragma config EBTR0  = OFF
-        #pragma config EBTR1  = OFF
-        #pragma config EBTRB  = OFF      
-#else
-	#error Not a supported board (yet), make sure the proper board is selected in usbcfg.h, and if so, set configuration bits in __FILE__, line __LINE__
-#endif
 
 /** V A R I A B L E S ********************************************************/
 #pragma udata
@@ -208,11 +93,7 @@ bootloader to use more program memory.
 /** P R I V A T E  P R O T O T Y P E S ***************************************/
 static void InitializeSystem(void);
 void USBTasks(void);
-#if !defined(__18F14K50) && !defined(__18F13K50) && !defined(__18LF14K50) && !defined(__18LF13K50)
-    void BlinkUSBStatus(void);
-#else
-    #define BlinkUSBStatus()
-#endif
+#define BlinkUSBStatus()
 
 /** V E C T O R  R E M A P P I N G *******************************************/
 #pragma code high_vector=0x08
@@ -247,34 +128,17 @@ void interrupt_at_low_vector(void)
  *****************************************************************************/
 void main(void)
 {   
-    //Need to make sure RB4 can be used as a digital input pin.
-    #if defined(PIC18F4550_PICDEM_FS_USB_K50)
-        unsigned char ANSELBSave;
-        ANSELBSave = ANSELB;
-        ANSELBbits.ANSB4 = 0;   //Configure RB4/AN11 for digital input capability
-    #else
-        ADCON1 = 0x0F;			//Need to make sure RB4 can be used as a digital input pin
-    #endif
-
- 	//	TRISBbits.TRISB4 = 1;	//No need to explicitly do this since reset state is = 1 already.
-    
-    //Check Bootload Mode Entry Condition
-	if(sw2 == 1)	//This example uses the sw2 I/O pin to determine if the device should enter the bootloader, or the main application code
+	if(0 == 1)	//This example uses the sw2 I/O pin to determine if the device should enter the bootloader, or the main application code
 	{
-    	//Restore default "reset" value of registers we may have modified temporarily.
-        #if defined(PIC18F4550_PICDEM_FS_USB_K50)
-            ANSELB = ANSELBSave;
-        #else
-            ADCON1 = 0x07;		//Restore "reset value" of the ADCON1 register
-		#endif
-		_asm
-		goto 0x1000			//If the user is not trying to enter the bootloader, go straight to the main application remapped "reset" vector.
-		_endasm
+            _asm
+            goto 0x1000			//If the user is not trying to enter the bootloader, go straight to the main application remapped "reset" vector.
+            _endasm
 	}
 
     //We have decided to stay in this bootloader firwmare project.  Initialize
     //this firmware and the USB module.
     InitializeSystem();
+    USBModuleEnable();
     
     //Execute main loop
     while(1)
@@ -356,13 +220,6 @@ static void InitializeSystem(void)
     
     //Initialize oscillator settings compatible with USB operation.  Note,
     //these may be application specific!
-    #if defined(PIC18F4550_PICDEM_FS_USB_K50)
-        OSCTUNE = 0x80; //3X PLL ratio mode selected
-        OSCCON = 0x70;  //Switch to 16MHz HFINTOSC
-        OSCCON2 = 0x10; //Enable PLL, SOSC, PRI OSC drivers turned off
-        while(OSCCON2bits.PLLRDY != 1);   //Wait for PLL lock
-        *((unsigned char*)0xFB5) = 0x90;  //Enable active clock tuning for USB operation
-    #endif
     
     
     mInitializeUSBDriver();         // See usbdrv.h
@@ -391,60 +248,9 @@ void USBTasks(void)
     /*
      * Servicing Hardware
      */
-    USBCheckBusStatus();                    // Must use polling method
     USBDriverService();              	    // Interrupt or polling method
 
 }// end USBTasks
-
-
-/******************************************************************************
- * Function:        void BlinkUSBStatus(void)
- *
- * PreCondition:    None
- *
- * Input:           None
- *
- * Output:          None
- *
- * Side Effects:    None
- *
- * Overview:        BlinkUSBStatus turns on and off LEDs corresponding to
- *                  the USB device state.
- *
- * Note:            mLED macros can be found in io_cfg.h
- *                  usb_device_state is declared in usbmmap.c and is modified
- *                  in usbdrv.c, usbctrltrf.c, and usb9.c
- *****************************************************************************/
-#if !defined(__18F14K50) && !defined(__18F13K50) && !defined(__18LF14K50) && !defined(__18LF13K50)
-void BlinkUSBStatus(void)
-{
-    static word led_count=0;
-
-    if(led_count == 0)led_count = 10000U;
-    led_count--;
-
-    #define mLED_Both_Off()         {mLED_1_Off();mLED_2_Off();}
-    #define mLED_Both_On()          {mLED_1_On();mLED_2_On();}
-    #define mLED_Only_1_On()        {mLED_1_On();mLED_2_Off();}
-    #define mLED_Only_2_On()        {mLED_1_Off();mLED_2_On();}
-
-	 if(usb_device_state < CONFIGURED_STATE)
-	 {
-		 mLED_Only_1_On();
-	 } 
-	 else
-     {
-         if(led_count==0)
-         {
-             mLED_1_Toggle();
-             mLED_2 = !mLED_1;       // Alternate blink
-         }//end if
-     }//end if(...)
-}//end BlinkUSBStatus
-#endif
-
-
-
 
 
 

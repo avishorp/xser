@@ -45,43 +45,6 @@
 #define UCFG_VAL                _PUEN|_TRINT|_FS|MODE_PP
 
 
-/* Make sure the proper hardware platform is being used*/
-#if defined(__18F4550) || defined(__18F4455) || defined(__18F4450) || defined(__18F2550) || defined(__18F2455) || defined(__18F2450) || defined(__18F2458) || defined(__18F2553) || defined(__18F4458) || defined(__18F4553)
-	#define PIC18F4550_PICDEM_FS_USB
-#endif
-#if defined(__18F45K50) || defined(__18LF45K50) || defined(__18F25K50) || defined(__18LF25K50) || defined(__18F24K50) || defined(__18LF24K50)
-	#define PIC18F4550_PICDEM_FS_USB_K50
-#endif
-
-#if defined(__18F14K50) || defined(__18F13K50) || defined(__18LF14K50) || defined(__18LF13K50)
-	#define LOW_PIN_COUNT_USB_DEVELOPMENT_KIT
-#endif
-//#define YOUR_BOARD
-
-
-#if defined(PIC18F4550_PICDEM_FS_USB)
-//    #define USE_SELF_POWER_SENSE_IO
-//    #define USE_USB_BUS_SENSE_IO
-
-#elif defined(PIC18F4550_PICDEM_FS_USB_K50)
-//    #define USE_SELF_POWER_SENSE_IO
-//    #define USE_USB_BUS_SENSE_IO
-
-#elif defined(PIC18F87J50_FS_USB_PIM)
-    //#define USE_USB_BUS_SENSE_IO		//JP1 must be in R-U position to use this feature on this board		
-
-#elif defined(LOW_PIN_COUNT_USB_DEVELOPMENT_KIT)
-
-
-/*If using the YOUR_BOARD selection, uncomment below section as appropriate for your hardware*/
-//#elif defined(YOUR_BOARD)
-	//#define USE_SELF_POWER_SENSE_IO	//See MCHPFSUSB Firmware User's Guide
-   	//#define USE_USB_BUS_SENSE_IO		//(DS51679) for more details about these features.
-
-#else
-    #error Not a supported board (yet), See __FILE__, line __LINE__, or double click on this text.
-//See above commented section.  You need to select the features your hardware will be using.
-#endif
 
 /** D E V I C E  C L A S S  U S A G E *******************************/
 #define USB_USE_HID
@@ -131,5 +94,8 @@
 }
 
 #define MAX_EP_NUMBER           1           // UEP1
+
+// Device is bus powered
+#define self_power 0
 
 #endif //USBCFG_H
