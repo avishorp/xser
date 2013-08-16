@@ -11,7 +11,7 @@
 //      RA0       IN       Logic Level Detect
 //      RA1       OUT      LCD Common
 //      RA2       OUT      LCD D2
-//      RA3       OUT      LCD E3
+//      RA3       OUT      LCD E2
 //      RA4       OUT      LCD G2
 //      RA5       OUT      LCD F2
 //      RA6       OUT      LCD B2

@@ -85,7 +85,6 @@ bootloader to use more program memory.
 #include "usb.h"                         
 #include "io_cfg.h"                     
 #include "BootPIC18NonJ.h"
-#include "HardwareProfile.h"
 
 /** C O N F I G U R A T I O N ************************************************/
 // Note: For a complete list of the available config pragmas and their values, 
@@ -138,6 +137,8 @@ void interrupt_at_low_vector(void)
  *****************************************************************************/
 void main(void)
 {
+    unsigned char t;
+
     //Need to make sure RB4 can be used as a digital input pin.
 
     //Check Bootload Mode Entry Condition
@@ -157,16 +158,20 @@ void main(void)
     //Execute main loop
     while(1)
     {
-		ClrWdt();	
-	    USBTasks();         					// Need to call USBTasks() periodically
+        ClrWdt();
+	USBTasks();         					// Need to call USBTasks() periodically
 	    										// it handles SETUP packets needed for enumeration
 
-		BlinkUSBStatus();
+	// Invert the LCD outputs
+        t++;
+        if (t==0) {
+            LCD_Invert_Bits();
+        }
 		
-	    if((usb_device_state == CONFIGURED_STATE) && (UCONbits.SUSPND != 1))
-	    {
- 	       ProcessIO();   // This is where all the actual bootloader related data transfer/self programming takes place
- 	    }				  // see ProcessIO() function in the Boot87J50Family.c file.
+	if((usb_device_state == CONFIGURED_STATE) && (UCONbits.SUSPND != 1))
+	{
+            ProcessIO();   // This is where all the actual bootloader related data transfer/self programming takes place
+ 	}				  // see ProcessIO() function in the Boot87J50Family.c file.
     }//end while
 
 }//end main
@@ -247,6 +252,11 @@ static void InitializeSystem(void)
 
     // Initialize I/O
     IO_Init();
+
+    // Set the LCD to display the letter "F"
+    LATA = 0b10111000;
+    LATB = 0;
+    LATC = 0b11111110;
     
     
     mInitializeUSBDriver();         // See usbdrv.h
