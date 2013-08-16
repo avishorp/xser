@@ -85,6 +85,7 @@ bootloader to use more program memory.
 #include "usb.h"                         
 #include "io_cfg.h"                     
 #include "BootPIC18NonJ.h"
+#include "HardwareProfile.h"
 
 /** C O N F I G U R A T I O N ************************************************/
 // Note: For a complete list of the available config pragmas and their values, 
@@ -137,7 +138,6 @@ void interrupt_at_low_vector(void)
  *****************************************************************************/
 void main(void)
 {
-        OSCCON = 0b01110000;
     //Need to make sure RB4 can be used as a digital input pin.
 
     //Check Bootload Mode Entry Condition
@@ -241,6 +241,12 @@ static void InitializeSystem(void)
         while(OSCCON2bits.PLLRDY != 1);   //Wait for PLL lock
         *((unsigned char*)0xFB5) = 0x90;  //Enable active clock tuning for USB operation
     #endif
+
+    // Initialize Oscillator
+    OSCCON = 0b01110000;
+
+    // Initialize I/O
+    IO_Init();
     
     
     mInitializeUSBDriver();         // See usbdrv.h
