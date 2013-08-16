@@ -86,6 +86,11 @@ bootloader to use more program memory.
 #include "io_cfg.h"                     
 #include "BootPIC18NonJ.h"
 
+/** C O N F I G U R A T I O N ************************************************/
+// Note: For a complete list of the available config pragmas and their values, 
+// see the compiler documentation, and/or click "Help --> Topics..." and then 
+// select "PIC18 Config Settings" in the Language Tools section.
+
 
 /** V A R I A B L E S ********************************************************/
 #pragma udata
@@ -93,7 +98,11 @@ bootloader to use more program memory.
 /** P R I V A T E  P R O T O T Y P E S ***************************************/
 static void InitializeSystem(void);
 void USBTasks(void);
-#define BlinkUSBStatus()
+#if !defined(__18F14K50) && !defined(__18F13K50) && !defined(__18LF14K50) && !defined(__18LF13K50)
+    void BlinkUSBStatus(void);
+#else
+    #define BlinkUSBStatus()
+#endif
 
 /** V E C T O R  R E M A P P I N G *******************************************/
 #pragma code high_vector=0x08
@@ -127,18 +136,23 @@ void interrupt_at_low_vector(void)
  * Note:            None
  *****************************************************************************/
 void main(void)
-{   
+{
+        OSCCON = 0b01110000;
+    //Need to make sure RB4 can be used as a digital input pin.
+
+    //Check Bootload Mode Entry Condition
 	if(0 == 1)	//This example uses the sw2 I/O pin to determine if the device should enter the bootloader, or the main application code
 	{
-            _asm
-            goto 0x1000			//If the user is not trying to enter the bootloader, go straight to the main application remapped "reset" vector.
-            _endasm
+    	//Restore default "reset" value of registers we may have modified temporarily.
+
+		_asm
+		goto 0x1000			//If the user is not trying to enter the bootloader, go straight to the main application remapped "reset" vector.
+		_endasm
 	}
 
     //We have decided to stay in this bootloader firwmare project.  Initialize
     //this firmware and the USB module.
     InitializeSystem();
-    USBModuleEnable();
     
     //Execute main loop
     while(1)
@@ -220,6 +234,13 @@ static void InitializeSystem(void)
     
     //Initialize oscillator settings compatible with USB operation.  Note,
     //these may be application specific!
+    #if defined(PIC18F4550_PICDEM_FS_USB_K50)
+        OSCTUNE = 0x80; //3X PLL ratio mode selected
+        OSCCON = 0x70;  //Switch to 16MHz HFINTOSC
+        OSCCON2 = 0x10; //Enable PLL, SOSC, PRI OSC drivers turned off
+        while(OSCCON2bits.PLLRDY != 1);   //Wait for PLL lock
+        *((unsigned char*)0xFB5) = 0x90;  //Enable active clock tuning for USB operation
+    #endif
     
     
     mInitializeUSBDriver();         // See usbdrv.h
@@ -248,9 +269,39 @@ void USBTasks(void)
     /*
      * Servicing Hardware
      */
+    USBCheckBusStatus();                    // Must use polling method
     USBDriverService();              	    // Interrupt or polling method
 
 }// end USBTasks
+
+
+/******************************************************************************
+ * Function:        void BlinkUSBStatus(void)
+ *
+ * PreCondition:    None
+ *
+ * Input:           None
+ *
+ * Output:          None
+ *
+ * Side Effects:    None
+ *
+ * Overview:        BlinkUSBStatus turns on and off LEDs corresponding to
+ *                  the USB device state.
+ *
+ * Note:            mLED macros can be found in io_cfg.h
+ *                  usb_device_state is declared in usbmmap.c and is modified
+ *                  in usbdrv.c, usbctrltrf.c, and usb9.c
+ *****************************************************************************/
+#if !defined(__18F14K50) && !defined(__18F13K50) && !defined(__18LF14K50) && !defined(__18LF13K50)
+void BlinkUSBStatus(void)
+{
+
+}//end BlinkUSBStatus
+#endif
+
+
+
 
 
 

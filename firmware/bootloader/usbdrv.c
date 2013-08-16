@@ -53,6 +53,7 @@ byte bTRNIFCount;               // Bug fix - Work around.
 
 /** P R I V A T E  P R O T O T Y P E S ***************************************/
 void USBModuleEnable(void);
+void USBModuleDisable(void);
 
 void USBSuspend(void);
 void USBWakeFromSuspend(void);
@@ -64,6 +65,66 @@ void USBErrorHandler(void);
 
 /** D E C L A R A T I O N S **************************************************/
 #pragma code
+/******************************************************************************
+ * Function:        void USBCheckBusStatus(void)
+ *
+ * PreCondition:    None
+ *
+ * Input:           None
+ *
+ * Output:          None
+ *
+ * Side Effects:    None
+ *
+ * Overview:        This routine enables/disables the USB module by monitoring
+ *                  the USB power signal.
+ *
+ * Note:            None
+ *****************************************************************************/
+void USBCheckBusStatus(void)
+{
+    /**************************************************************************
+     * Bus Attachment & Detachment Detection
+     * usb_bus_sense is an i/o pin defined in io_cfg.h
+     *************************************************************************/
+    #define USB_BUS_ATTACHED    1
+    #define USB_BUS_DETACHED    0
+
+    if(usb_bus_sense == USB_BUS_ATTACHED)       // Is USB bus attached?
+    {
+        if(UCONbits.USBEN == 0)                 // Is the module off?
+            USBModuleEnable();                  // Is off, enable it
+    }
+    else
+    {
+        if(UCONbits.USBEN == 1)                 // Is the module on?
+        {
+            UCON = 0;                               // Disable module & detach from bus
+            UIE = 0;                                // Mask all USB interrupts
+            usb_device_state = DETACHED_STATE;      // Defined in usbmmap.c & .h
+        }
+    }//end if(usb_bus_sense...)
+
+    /*
+     * After enabling the USB module, it takes some time for the voltage
+     * on the D+ or D- line to rise high enough to get out of the SE0 condition.
+     * The USB Reset interrupt should not be unmasked until the SE0 condition is
+     * cleared. This helps preventing the firmware from misinterpreting this
+     * unique event as a USB bus reset from the USB host.
+     */
+    if(usb_device_state == ATTACHED_STATE)
+    {
+        if(!UCONbits.SE0)
+        {
+            UIR = 0;                        // Clear all USB interrupts
+            UIE = 0;                        // Mask all USB interrupts
+            UIEbits.URSTIE = 1;             // Unmask RESET interrupt
+            UIEbits.IDLEIE = 1;             // Unmask IDLE interrupt
+            usb_device_state = POWERED_STATE;
+        }//end if                           // else wait until SE0 is cleared
+    }//end if(usb_device_state == ATTACHED_STATE)
+
+}//end USBCheckBusStatus
 
 /******************************************************************************
  * Function:        void USBModuleEnable(void)
@@ -305,9 +366,9 @@ void USBSuspend(void)
      */
 
     /* Modifiable Section */
-//    PIR2bits.USBIF = 0;
+    PIR2bits.USBIF = 0;
 //    INTCONbits.RBIF = 0;
-//    PIE2bits.USBIE = 1;                     // Set USB wakeup source
+    PIE2bits.USBIE = 1;                     // Set USB wakeup source
 //    INTCONbits.RBIE = 1;                    // Set sw2,3 wakeup source
     Sleep();                                // Goto sleep
 
@@ -315,7 +376,7 @@ void USBSuspend(void)
 //    {
 //        USBRemoteWakeup();                  // If yes, attempt RWU
 //    }
-//    PIE2bits.USBIE = 0;
+    PIE2bits.USBIE = 0;
 //    INTCONbits.RBIE = 0;
     /* End Modifiable Section */
 
