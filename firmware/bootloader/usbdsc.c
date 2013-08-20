@@ -186,12 +186,12 @@ rom USB_DEV_DSC device_dsc=
     0x00,                   // Subclass code
     0x00,                   // Protocol code
     EP0_BUFF_SIZE,          // Max packet size for EP0, see usbcfg.h
-    0x04D8,                 // Vendor ID: Microchip
-    0x003C,                 // Product ID: HID Bootloader
-    0x0002,                 // Device release number in BCD format
+    0x1d50,                 // Vendor ID: Microchip
+    0x6069,                 // Product ID: HID Bootloader
+    0x0001,                 // Device release number in BCD format
     0x01,                   // Manufacturer string index
     0x02,                   // Product string index
-    0x00,                   // Device serial number string index
+    0x03,                   // Device serial number string index
     0x01                    // Number of possible configurations
 };
 
@@ -235,15 +235,13 @@ CFG01={
 rom struct{byte bLength;byte bDscType;word string[1];}sd000={
 sizeof(sd000),DSC_STR,0x0409};
 
-rom struct{byte bLength;byte bDscType;word string[25];}sd001={
+rom struct{byte bLength;byte bDscType;word string[4];}sd001={
 sizeof(sd001),DSC_STR,
-'M','i','c','r','o','c','h','i','p',' ',
-'T','e','c','h','n','o','l','o','g','y',' ','I','n','c','.'};
+'X','S','e','r'};
 
-rom struct{byte bLength;byte bDscType;word string[18];}sd002={
+rom struct{byte bLength;byte bDscType;word string[10];}sd002={
 sizeof(sd002),DSC_STR,
-'H','I','D',' ','U','S','B',' ','B','o','o',
-'t','l','o','a','d','e','r'};
+'X','S','e','r',' ','(','D','F','U',')'};
 
 rom struct{byte report[HID_RPT01_SIZE];}hid_rpt01={
 //	First byte is the "Item".  First byte's two LSbs are the number of data bytes that
@@ -280,10 +278,15 @@ rom const unsigned char *rom USB_SD_Ptr[]=
     (rom const unsigned char *rom)&sd002
 };
 
+
 rom pFunc ClassReqHandler[1]=
 {
     &USBCheckHIDRequest
 };
+
+#pragma udata USB_VARS
+// RAM data structure holding the serial number
+sdSerial_t sdSerial;
 
 #pragma code
 

@@ -97,6 +97,7 @@ bootloader to use more program memory.
 
 /** P R I V A T E  P R O T O T Y P E S ***************************************/
 static void InitializeSystem(void);
+void InitSerialNumber();
 void USBTasks(void);
 #if !defined(__18F14K50) && !defined(__18F13K50) && !defined(__18LF14K50) && !defined(__18LF13K50)
     void BlinkUSBStatus(void);
@@ -200,6 +201,8 @@ void main(void)
  *****************************************************************************/
 static void InitializeSystem(void)
 {
+        char i;
+
 //	The USB specifications require that USB peripheral devices must never source
 //	current onto the Vbus pin.  Additionally, USB peripherals should not source
 //	current on D+ or D- when the host/hub is not actively powering the Vbus line.
@@ -257,13 +260,49 @@ static void InitializeSystem(void)
     LATA = 0b10111000;
     LATB = 0;
     LATC = 0b11111110;
-    
+
+    InitSerialNumber();
+
+    // Reenable interrupts
+    TBLPTRU=0;            // sect. 3.1 C18 User's guide...
     
     mInitializeUSBDriver();         // See usbdrv.h
     
     UserInit();                     // See user.c & .h
 
 }//end InitializeSystem
+
+// Read the serial number from the EEPROM
+void InitSerialNumber()
+{
+    char i, c;
+
+    // A Pointer to the ID location
+    rom char far *pID=(rom char far *)0x200000;
+
+    // Initialize the string descriptor
+    sdSerial.bLength = sizeof(sdSerial);
+    sdSerial.bDscType = DSC_STR;
+
+    // Temporarily disable interrupts
+    INTCONbits.GIE=0;
+
+    for(i=0; i<8; i++)
+    {
+        // Read the EEPROM data into the serial number
+        // variable
+        c = (*pID++) & 0x0f;
+        if (c > 9)
+            sdSerial.string[i] = 'A' + (c-10);
+        else
+            sdSerial.string[i] = '0' + c;
+
+    }
+
+    // Reenable interrupts
+    TBLPTRU=0;            // sect. 3.1 C18 User's guide...
+    INTCONbits.GIE=1;
+}
 
 /******************************************************************************
  * Function:        void USBTasks(void)

@@ -15,7 +15,6 @@
                    projectFiles="true">
       <itemPath>main.c</itemPath>
       <itemPath>usb_descriptors.c</itemPath>
-      <itemPath>config.c</itemPath>
       <itemPath>lcd.h</itemPath>
       <itemPath>lcd.c</itemPath>
       <itemPath>usart.h</itemPath>
@@ -25,6 +24,7 @@
       <itemPath>../usb_stack/usb_device.c</itemPath>
       <itemPath>../usb_stack/usb_function_cdc.c</itemPath>
       <itemPath>../usb_stack/usb_function_hid.c</itemPath>
+      <itemPath>../common/config.c</itemPath>
     </logicalFolder>
     <logicalFolder name="ExternalFiles"
                    displayName="Important Files"
@@ -34,6 +34,7 @@
   </logicalFolder>
   <sourceRootList>
     <Elem>../usb_stack</Elem>
+    <Elem>../common</Elem>
   </sourceRootList>
   <projectmakefile>Makefile</projectmakefile>
   <confs>

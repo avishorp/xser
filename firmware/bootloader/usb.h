@@ -59,4 +59,13 @@
 #include "hid.h"
 #endif
 
+// Serial number string descriptor
+typedef struct {
+    byte bLength;
+    byte bDscType;
+    word string[8];
+} sdSerial_t;
+
+extern sdSerial_t sdSerial;
+
 #endif //USB_H

@@ -138,6 +138,8 @@ void USBStdGetDscHandler(void)
 {
     if(SetupPkt.bmRequestType == 0x80)
     {
+        usb_stat.ctrl_trf_mem = _ROM;                       // Set memory type
+
         switch(SetupPkt.bDscType)
         {
             case DSC_DEV:
@@ -152,12 +154,24 @@ void USBStdGetDscHandler(void)
                 break;
             case DSC_STR:
                 ctrl_trf_session_owner = MUID_USB9;
-                pSrc.bRom = *(USB_SD_Ptr+SetupPkt.bDscIndex);
-                wCount._word = *pSrc.bRom;                  // Set data count
+                if (SetupPkt.bDscIndex == 3) {
+                    // The serial number descriptor
+                    // is taken from the RAM
+                    usb_stat.ctrl_trf_mem = _RAM;
+                    pSrc.bRam = (byte*)&sdSerial;
+                    wCount._word = *pSrc.bRam;
+                }
+                else {
+                    // Other string descriptors are
+                    // taken directly from the string
+                    // table (in the ROM)
+                    pSrc.bRom = *(USB_SD_Ptr+SetupPkt.bDscIndex);
+                    wCount._word = *pSrc.bRom;                  // Set data count
+                }
+
                 break;
         }//end switch
         
-        usb_stat.ctrl_trf_mem = _ROM;                       // Set memory type
     }//end if
 }//end USBStdGetDscHandler
 

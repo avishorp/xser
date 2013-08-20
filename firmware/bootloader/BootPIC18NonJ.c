@@ -299,43 +299,12 @@ void ProcessIO(void)
 		{
 			case QUERY_DEVICE:
 			{
-				//Prepare a response packet, which lets the PC software know about the memory ranges of this device.
-				PacketToPC.Command = QUERY_DEVICE;
-				PacketToPC.PacketDataFieldSize = RequestDataBlockSize;
-				PacketToPC.BytesPerAddress = BytesPerAddressPIC18;
-				PacketToPC.Type1 = TypeProgramMemory;
-				PacketToPC.Address1 = (unsigned long)ProgramMemStart;
-				PacketToPC.Length1 = (unsigned long)(ProgramMemStop - ProgramMemStart);	//Size of program memory area
-				PacketToPC.Type2 = TypeConfigWords;
-				PacketToPC.Address2 = (unsigned long)ConfigWordsStartAddress;
-				PacketToPC.Length2 = (unsigned long)ConfigWordsSectionLength;
-				PacketToPC.Type3 = TypeProgramMemory;		//Not really program memory (User ID), but may be treated as it it was as far as the host is concerned
-				PacketToPC.Address3 = (unsigned long)UserIDAddress;
-				PacketToPC.Length3 = (unsigned long)(UserIDSize);
-				PacketToPC.Type4 = TypeEndOfTypeList;
-				#if defined(DEVICE_WITH_EEPROM)
-					PacketToPC.Type4 = TypeEEPROM;
-					PacketToPC.Address4 = (unsigned long)EEPROMEffectiveAddress;
-					PacketToPC.Length4 = (unsigned long)EEPROMSize;
-					PacketToPC.Type5 = TypeEndOfTypeList;
-				#endif
-				//Init pad bytes to 0x00...  Already done after we received the QUERY_DEVICE command (just after calling HIDRxReport()).
-	
-				if(!mHIDTxIsBusy())
-				{
-					HIDTxReport((char *)&PacketToPC, 64);
-					BootState = IDLE;
-				}
+
 			}
 				break;
 			case UNLOCK_CONFIG:
 			{
-				ConfigsLockValue = TRUE;
-				if(PacketFromPC.LockValue == UNLOCKCONFIG)
-				{
-					ConfigsLockValue = FALSE;
-				}
-				BootState = IDLE;
+
 			}
 				break;
 			case ERASE_DEVICE:
@@ -350,23 +319,6 @@ void ProcessIO(void)
 					USBDriverService(); 	//Call USBDriverService() periodically to prevent falling off the bus if any SETUP packets should happen to arrive.
 				}
 				
-				#if defined(DEVICE_WITH_EEPROM)
-    				//Now erase EEPROM (if any is present on the device)
-    				i = EEPROMEffectiveAddress & (EEPROMSize-1);
-    				do{
-    					EEADR = i;
-    					EEDATA = 0xFF;
-    					EECON1 = 0b00000100;	//EEPROM Write mode
-    					USBDriverService(); 	//Call USBDriverService() periodically to prevent falling off the bus if any SETUP packets should happen to arrive.
-    					UnlockAndActivate(CORRECT_UNLOCK_KEY);					
-    				}while(i++<((EEPROMSize-1)+(EEPROMEffectiveAddress & (EEPROMSize-1))));
-				#endif
-
-				//Now erase the User ID space (0x200000 to 0x200007)
-				TBLPTR = UserIDAddress;
-				EECON1 = 0b10010100;	//Prepare for erasing flash memory
-				UnlockAndActivate(CORRECT_UNLOCK_KEY);
-
 				BootState = IDLE;				
 			}
 				break;
@@ -375,23 +327,9 @@ void ProcessIO(void)
 				//Check if host is trying to program the config bits
 				if(PacketFromPC.Contents[3] == 0x30) // 			//PacketFromPC.Contents[3] is bits 23:16 of the address.  
 				{													//0x30 implies config bits
-					if(ConfigsLockValue == FALSE)
-					{
-						WriteConfigBits();		//Doesn't get reprogrammed if the UNLOCK_CONFIG (LockValue = UNLOCKCONFIG) command hasn't previously been sent
-					}
 					BootState = IDLE;
 					break;
 				}
-
-				#if defined(DEVICE_WITH_EEPROM)
-    				//Check if host is trying to program the EEPROM
-    				if(PacketFromPC.Contents[3] == 0xF0)	//PacketFromPC.Contents[3] is bits 23:16 of the address.  
-    				{										//0xF0 implies EEPROM
-    					WriteEEPROM();
-    					BootState = IDLE;
-    					break;
-    				}
-				#endif
 
 				if(ProgrammedPointer == (unsigned short long)INVALID_ADDRESS)
 					ProgrammedPointer = PacketFromPC.Address;
