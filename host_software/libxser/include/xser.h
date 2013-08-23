@@ -43,7 +43,7 @@
 // VID & PID of the XSer unit
 #define XSER_VID     L"1D50"
 #define XSER_PID     L"6059"
-#define XSER_PID_DFU L"0692"
+#define XSER_PID_DFU L"6069"
 
 
 
@@ -160,6 +160,45 @@ public:
 	// Enter DFU mode
 	virtual void enter_dfu() const;
 
+};
+
+// This class is a partial implementation of an object representing an xser instance
+// in DFU mode. The class implements all the platform-independent
+// parts of the object.
+// In order to create a complete object, the implementer should provide several
+// methods:
+//   * get_serial_number - The device serial number read from the USB subsystem
+//   * get_hid_io - Returns an object being able to read and write packets to a 
+//                  (already opened) HID interface, in platform-independent fashion
+
+class EXPORT abstract_xser_instance_dfu: public xser::xser_instance_dfu_ifx {
+
+protected:
+	// Returns an interface to an open HID device, ready to receive and transmit
+	// packets
+	virtual const hid_ifx& get_hid_io() const = 0;
+
+	// From xser_instance_ifx
+	/////////////////////////
+public:
+	// Determine whether the device is in DFU mode
+	virtual bool is_dfu_mode() const {
+		// This object represents a device in DFU mode
+		return true;  
+	}
+
+	// Get the serial number associated with the instance
+	// Requires platform specific implementation
+	virtual const std::string& get_serial_number() const = 0;
+
+	// From xser_instance_dfu_ifx
+	//////////////////////////////
+public:
+	// Program a new firmware
+	virtual void program_firmware(void* image, int len) const;
+
+	// Finalize the programming and resume normal operation
+	virtual void finalize_programming() const;
 };
 
 #ifdef BUILD_WINDOWS

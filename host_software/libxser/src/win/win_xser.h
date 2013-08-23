@@ -32,6 +32,8 @@ public:
 	virtual void set_verbose_stream(std::ostream& vs) { verbose_stream = &vs; }
 
 private:
+	std::auto_ptr<std::string> get_serial_number(HDEVINFO device_info_set, PSP_DEVINFO_DATA device_info_data);
+
 	xser::xser_instances_t xser_instances;
 	std::ostream* verbose_stream;
 };

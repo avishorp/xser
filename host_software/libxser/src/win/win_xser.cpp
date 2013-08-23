@@ -4,6 +4,7 @@
 #include "stdafx.h"
 #include "win_xser.h"
 #include "win_xser_instance_oper.h"
+#include "win_xser_instance_dfu.h"
 #include <memory>
 #include <string>
 #include <regex>
@@ -12,7 +13,8 @@
 using namespace std;
 using namespace xser;
 
-#define HWID_STRING L"USB\\VID_" XSER_VID L"&PID_" XSER_PID
+#define HWID_OPER_STRING L"USB\\VID_" XSER_VID L"&PID_" XSER_PID
+#define HWID_DFU_STRING  L"USB\\VID_" XSER_VID L"&PID_" XSER_PID_DFU
 
 
 // Default value for the instance variable
@@ -72,7 +74,8 @@ void win_xser_instance_manager::rescan()
 	BOOLEAN r;
 	int working_device_count = 0;
 
-	int hwid_length = wcslen(HWID_STRING);
+	int hwid_oper_length = wcslen(HWID_OPER_STRING);
+	int hwid_dfu_length = wcslen(HWID_DFU_STRING);
 
 	get_verbose_stream() << "Starting device scan" << endl;
 
@@ -98,29 +101,29 @@ void win_xser_instance_manager::rescan()
 		get_verbose_stream() << "Device " << device_index << " (HwID=" << hardware_id_str << ") ... ";
 
 		// Compare it against the desired hardware ID
-		if (_wcsnicmp(HWID_STRING, hardware_id, hwid_length) == 0) {
-			// Hardware ID matche
+		if (_wcsnicmp(HWID_OPER_STRING, hardware_id, hwid_oper_length) == 0) {
+			// Hardware ID match (operational)
 			get_verbose_stream() << "Match" << endl;
 
-			// Obtain the serial number of the device
-			DWORD instance_id_size;
-			r = SetupDiGetDeviceInstanceId(device_info_set, &device_info_data, NULL, 0, &instance_id_size);
-			wchar_t* instance_id = new wchar_t[instance_id_size + 1];
-
-			r = SetupDiGetDeviceInstanceId(device_info_set, &device_info_data, instance_id, instance_id_size, NULL);
-			if (!r)
-				throw runtime_error("Could not get all device instance ID");
-
-			wstring instance_id_wstr(instance_id);
-			string instance_id_str(instance_id_wstr.begin(), instance_id_wstr.end());
-
-			int k = instance_id_str.rfind('\\');
-			string serial(instance_id_str.substr(k + 1, instance_id_str.length() - k - 1));
-
-			get_verbose_stream() << ">> " << serial << endl;
+			// Get the serial number
+			auto_ptr<string> serial = get_serial_number(device_info_set, &device_info_data);
 
 			// Create a new xser instance object
-			shared_ptr<xser_instance_ifx> xsi(new win_xser_instance_oper(serial, device_info_set, &device_info_data));
+			shared_ptr<xser_instance_ifx> xsi(new win_xser_instance_oper(*serial, device_info_set, &device_info_data));
+
+			// Add it to the list
+			xser_instances.push_back(xsi);
+		}
+		else if (_wcsnicmp(HWID_DFU_STRING, hardware_id, hwid_dfu_length) == 0)
+		{
+			// Hardware ID match (operational)
+			get_verbose_stream() << "Match (DFU)" << endl;
+
+			// Get the serial number
+			auto_ptr<string> serial = get_serial_number(device_info_set, &device_info_data);
+
+			// Create a new DFU xser instance object
+			shared_ptr<xser_instance_ifx> xsi(new win_xser_instance_dfu(*serial, device_info_set, &device_info_data));
 
 			// Add it to the list
 			xser_instances.push_back(xsi);
@@ -130,4 +133,27 @@ void win_xser_instance_manager::rescan()
 			get_verbose_stream() << "No match" << endl;
 	}
 }
+
+std::auto_ptr<string> win_xser_instance_manager::get_serial_number(HDEVINFO device_info_set, PSP_DEVINFO_DATA device_info_data)
+{
+	// Obtain the serial number of the device
+	DWORD instance_id_size;
+	BOOLEAN r = SetupDiGetDeviceInstanceId(device_info_set, device_info_data, NULL, 0, &instance_id_size);
+	wchar_t* instance_id = new wchar_t[instance_id_size + 1];
+
+	r = SetupDiGetDeviceInstanceId(device_info_set, device_info_data, instance_id, instance_id_size, NULL);
+	if (!r)
+		throw runtime_error("Could not get all device instance ID");
+
+	wstring instance_id_wstr(instance_id);
+	string instance_id_str(instance_id_wstr.begin(), instance_id_wstr.end());
+
+	int k = instance_id_str.rfind('\\');
+	auto_ptr<string> ret(new string(instance_id_str.substr(k + 1, instance_id_str.length() - k - 1)));
+
+	get_verbose_stream() << ">> " << *ret << endl;
+
+	return ret;
+}
+
 

@@ -80,10 +80,12 @@
     <ClInclude Include="src/win/targetver.h" />
     <ClInclude Include="src\win\win_hid_ifx.h" />
     <ClInclude Include="src\win\win_xser.h" />
+    <ClInclude Include="src\win\win_xser_instance_dfu.h" />
     <ClInclude Include="src\win\win_xser_instance_oper.h" />
     <ClInclude Include="src\win\xser_instance_oper.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="abstract_xser_instance_dfu.cpp" />
     <ClCompile Include="abstract_xser_instance_manager.cpp" />
     <ClCompile Include="src/win/dllmain.cpp">
       <CompileAsManaged Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">false</CompileAsManaged>
@@ -100,6 +102,7 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Create</PrecompiledHeader>
     </ClCompile>
     <ClCompile Include="src\abstract_xser_instance_oper.cpp" />
+    <ClCompile Include="src\win\win_xser_instance_dfu.cpp" />
     <ClCompile Include="src\win\win_xser_instance_oper.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
