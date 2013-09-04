@@ -12,7 +12,6 @@ win_xser_instance_dfu::win_xser_instance_dfu(std::string& serial, HDEVINFO dev_i
 {
 	// Set default member variables
 	serial_number = serial;
-	hid_io = NULL;
 
 	// Scan through the children of the device. This function returns a list of null-separated
 	// childrens. It is expected that this kind of device has only one child
@@ -24,10 +23,10 @@ win_xser_instance_dfu::win_xser_instance_dfu(std::string& serial, HDEVINFO dev_i
 
 	hid_io = win_hid_ifx::from_child(children);
 
+	program_firmware(0, 0);
+
 }
 
 win_xser_instance_dfu::~win_xser_instance_dfu()
 {
-	if (hid_io != NULL)
-		delete hid_io;
 }

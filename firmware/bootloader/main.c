@@ -148,14 +148,29 @@ void main(void)
     	//Restore default "reset" value of registers we may have modified temporarily.
 
 		_asm
-		goto 0x1000			//If the user is not trying to enter the bootloader, go straight to the main application remapped "reset" vector.
+//		goto 0x1000			//If the user is not trying to enter the bootloader, go straight to the main application remapped "reset" vector.
 		_endasm
 	}
 
     //We have decided to stay in this bootloader firwmare project.  Initialize
     //this firmware and the USB module.
     InitializeSystem();
-    
+/*
+    TBLPTRU = 0;
+    TBLPTRH = 0x15;
+    TBLPTRL = 0;
+
+    EECON1 = 0b10110100;	//flash programming mode
+    UnlockAndActivate(0xB5);
+
+    for (t=0; t < 64; t++) {
+        TABLAT = t+1;
+        _asm tblwtpostinc _endasm
+    }
+    TBLPTRL = 0;
+EECON1 = 0b10100100;	//flash programming mode
+	UnlockAndActivate(0xB5);
+*/
     //Execute main loop
     while(1)
     {
@@ -171,7 +186,7 @@ void main(void)
 		
 	if((usb_device_state == CONFIGURED_STATE) && (UCONbits.SUSPND != 1))
 	{
-            ProcessIO();   // This is where all the actual bootloader related data transfer/self programming takes place
+            bootloader_process_io();   // This is where all the actual bootloader related data transfer/self programming takes place
  	}				  // see ProcessIO() function in the Boot87J50Family.c file.
     }//end while
 
@@ -240,16 +255,6 @@ static void InitializeSystem(void)
     tris_self_power = INPUT_PIN;
     #endif
     
-    //Initialize oscillator settings compatible with USB operation.  Note,
-    //these may be application specific!
-    #if defined(PIC18F4550_PICDEM_FS_USB_K50)
-        OSCTUNE = 0x80; //3X PLL ratio mode selected
-        OSCCON = 0x70;  //Switch to 16MHz HFINTOSC
-        OSCCON2 = 0x10; //Enable PLL, SOSC, PRI OSC drivers turned off
-        while(OSCCON2bits.PLLRDY != 1);   //Wait for PLL lock
-        *((unsigned char*)0xFB5) = 0x90;  //Enable active clock tuning for USB operation
-    #endif
-
     // Initialize Oscillator
     OSCCON = 0b01110000;
 
@@ -261,6 +266,10 @@ static void InitializeSystem(void)
     LATB = 0;
     LATC = 0b11111110;
 
+LATA = 0;
+LATB = 0;
+LATC = 0;
+
     InitSerialNumber();
 
     // Reenable interrupts
@@ -268,7 +277,7 @@ static void InitializeSystem(void)
     
     mInitializeUSBDriver();         // See usbdrv.h
     
-    UserInit();                     // See user.c & .h
+    bootloader_init();    // See user.c & .h
 
 }//end InitializeSystem
 

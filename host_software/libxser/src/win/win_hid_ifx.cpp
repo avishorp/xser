@@ -20,7 +20,7 @@ win_hid_ifx::~win_hid_ifx()
 		CloseHandle(hid_handle);
 }
 
-void win_hid_ifx::send_packet(int8_t* packet, int len) const
+void win_hid_ifx::send_packet(uint8_t* packet, int len) const
 {
 	// Make sure that the length of the message is grater than zero and smaller or
 	// equal to 64

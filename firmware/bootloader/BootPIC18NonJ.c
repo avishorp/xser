@@ -42,377 +42,117 @@
  *                                  and some robustness enhancements.
  *********************************************************************/
 
-/** C O N S T A N T S **********************************************************/
-
-//Section defining the address range to erase for the erase device command, along with the valid programming range to be reported by the QUERY_DEVICE command.
-#define ProgramMemStart					0x001000 //Beginning of application program memory (not occupied by bootloader).  **THIS VALUE MUST BE ALIGNED WITH 64 BYTE BLOCK BOUNDRY** Also, in order to work correctly, make sure the StartPageToErase is set to erase this section.
-
-#if defined(__18F4550)||defined(__18F2550)||defined(__18F45K50)||defined(__18LF45K50)||defined(__18F25K50)||defined(__18LF25K50)
-	#define StartPageToErase			64		 //The 4096 byte section from 0x000-0xFFF contains the bootloader and will not be erased
-	#define MaxPageToErase				511		 //Last 64 byte page of flash on the PIC18F4550
-	#define ProgramMemStop				0x008000 //**MUST BE WORD ALIGNED (EVEN) ADDRESS.  This address does not get updated, but the one just below it does: IE: If AddressToStopPopulating = 0x200, 0x1FF is the last programmed address (0x200 not programmed)**	
-	#define ConfigWordsStartAddress		0x300000 //0x300000 is CONFIG space for PIC18F4550/PIC18F4553/PIC18F4450 family devices
-	#define ConfigWordsSectionLength	14   	 //14 bytes worth of Configuration words on the PIC18F4550/PIC18F4553/PIC18F4450 family devices
-	#define UserIDAddress				0x200000 //User ID is 8 bytes starting at 0x200000
-	#define	UserIDSize					8
-	#define	DEVICE_WITH_EEPROM
-	#define	EEPROMSize					0x100	 //256 bytes of EEPROM on this device
-	#define EEPROMEffectiveAddress		0xF00000
-	#define	ProgramBlockSize			0x20	 //32 byte programming block size on the PIC18F4550/PIC18F4553 family devices
-#elif defined(__18F4553)||defined(__18F2553)
-	#define StartPageToErase			64		 //The 4096 byte section from 0x000-0xFFF contains the bootloader and will not be erased
-	#define MaxPageToErase				511		 //Last 64 byte page of flash on the PIC18F4550
-	#define ProgramMemStop				0x008000 //**MUST BE WORD ALIGNED (EVEN) ADDRESS.  This address does not get updated, but the one just below it does: IE: If AddressToStopPopulating = 0x200, 0x1FF is the last programmed address (0x200 not programmed)**	
-	#define ConfigWordsStartAddress		0x300000 //0x300000 is CONFIG space for PIC18F4550/PIC18F4553/PIC18F4450 family devices
-	#define ConfigWordsSectionLength	14   	 //14 bytes worth of Configuration words on the PIC18F4550/PIC18F4553/PIC18F4450 family devices
-	#define UserIDAddress				0x200000 //User ID is 8 bytes starting at 0x200000
-	#define	UserIDSize					8
-	#define	DEVICE_WITH_EEPROM
-	#define	EEPROMSize					0x100	 //256 bytes of EEPROM on this device
-	#define EEPROMEffectiveAddress		0xF00000
-	#define	ProgramBlockSize			0x20	 //32 byte programming block size on the PIC18F4550/PIC18F4553 family devices
-#elif defined(__18F4455)||defined(__18F2455)
-	#define StartPageToErase			64		 //The 4096 byte section from 0x000-0xFFF contains the bootloader and will not be erased
-	#define MaxPageToErase				383		 //Last 64 byte page of flash on the PIC18F4455
-	#define ProgramMemStop				0x006000 //**MUST BE WORD ALIGNED (EVEN) ADDRESS.  This address does not get updated, but the one just below it does: IE: If AddressToStopPopulating = 0x200, 0x1FF is the last programmed address (0x200 not programmed)**	
-	#define ConfigWordsStartAddress		0x300000 //0x300000 is CONFIG space for PIC18F4550/PIC18F4553/PIC18F4450 family devices
-	#define ConfigWordsSectionLength	14   	 //14 bytes worth of Configuration words on the PIC18F4550/PIC18F4553/PIC18F4450 family devices
-	#define UserIDAddress				0x200000 //User ID is 8 bytes starting at 0x200000
-	#define	UserIDSize					8
-	#define	DEVICE_WITH_EEPROM
-	#define	EEPROMSize					0x100	 //256 bytes of EEPROM on this device
-	#define EEPROMEffectiveAddress		0xF00000
-	#define	ProgramBlockSize			0x20	 //32 byte programming block size on the PIC18F4550/PIC18F4553 family devices
-#elif defined(__18F4458)||defined(__18F2458)
-	#define StartPageToErase			64		 //The 4096 byte section from 0x000-0xFFF contains the bootloader and will not be erased
-	#define MaxPageToErase				383		 //Last 64 byte page of flash on the PIC18F4455
-	#define ProgramMemStop				0x006000 //**MUST BE WORD ALIGNED (EVEN) ADDRESS.  This address does not get updated, but the one just below it does: IE: If AddressToStopPopulating = 0x200, 0x1FF is the last programmed address (0x200 not programmed)**	
-	#define ConfigWordsStartAddress		0x300000 //0x300000 is CONFIG space for PIC18F4550/PIC18F4553/PIC18F4450 family devices
-	#define ConfigWordsSectionLength	14   	 //14 bytes worth of Configuration words on the PIC18F4550/PIC18F4553/PIC18F4450 family devices
-	#define UserIDAddress				0x200000 //User ID is 8 bytes starting at 0x200000
-	#define	UserIDSize					8
-	#define	DEVICE_WITH_EEPROM
-	#define	EEPROMSize					0x100	 //256 bytes of EEPROM on this device
-	#define EEPROMEffectiveAddress		0xF00000
-	#define	ProgramBlockSize			0x20	 //32 byte programming block size on the PIC18F4550/PIC18F4553 family devices
-
-#elif defined(__18F4450)||defined(__18F2450)||defined(__18F24K50)||defined(__18LF24K50)
-	#define StartPageToErase			64		 //The 4096 byte section from 0x000-0xFFF contains the bootloader and will not be erased
-	#define MaxPageToErase				255		 //Last 64 byte page of flash on the PIC18F4450
-	#define ProgramMemStop				0x004000 //**MUST BE WORD ALIGNED (EVEN) ADDRESS.  This address does not get updated, but the one just below it does: IE: If AddressToStopPopulating = 0x200, 0x1FF is the last programmed address (0x200 not programmed)**	
-	#define ConfigWordsStartAddress		0x300000 //0x300000 is CONFIG space for PIC18F4550/PIC18F4553/PIC18F4450 family devices
-	#define ConfigWordsSectionLength	14   	 //14 bytes worth of Configuration words on the PIC18F4550/PIC18F4553/PIC18F4450 family devices
-	#define UserIDAddress				0x200000 //User ID is 8 bytes starting at 0x200000
-	#define	UserIDSize					8
-	#define	ProgramBlockSize			0x10	 //16 byte programming block size on the PIC18F4450/2450 family devices
-
-#elif defined(__18F14K50) || defined(__18LF14K50)
-	#define StartPageToErase			64		 //The 4096 byte section from 0x000-0xFFF contains the bootloader and will not be erased
-	#define MaxPageToErase				255		 //Last 64 byte page of flash on the PIC18F4455
-	#define ProgramMemStop				0x004000 //**MUST BE WORD ALIGNED (EVEN) ADDRESS.  This address does not get updated, but the one just below it does: IE: If AddressToStopPopulating = 0x200, 0x1FF is the last programmed address (0x200 not programmed)**	
-	#define ConfigWordsStartAddress		0x300000 //0x300000 is CONFIG space for PIC18F4550/PIC18F4553/PIC18F4450 family devices
-	#define ConfigWordsSectionLength	14   	 //14 bytes worth of Configuration words on the PIC18F4550/PIC18F4553/PIC18F4450 family devices
-	#define UserIDAddress				0x200000 //User ID is 8 bytes starting at 0x200000
-	#define	UserIDSize					8
-	#define	DEVICE_WITH_EEPROM
-	#define	EEPROMSize					0x100	 //256 bytes of EEPROM on this device
-	#define EEPROMEffectiveAddress		0xF00000
-    #define	ProgramBlockSize			0x10	 //16 byte programming block size on the PIC18F14K50 family devices
-#elif defined(__18F13K50) || defined(__18LF13K50)
-	#define StartPageToErase			64		 //The 4096 byte section from 0x000-0xFFF contains the bootloader and will not be erased
-	#define MaxPageToErase				127		 //Last 64 byte page of flash on the PIC18F4455
-	#define ProgramMemStop				0x002000 //**MUST BE WORD ALIGNED (EVEN) ADDRESS.  This address does not get updated, but the one just below it does: IE: If AddressToStopPopulating = 0x200, 0x1FF is the last programmed address (0x200 not programmed)**	
-	#define ConfigWordsStartAddress		0x300000 //0x300000 is CONFIG space for PIC18F4550/PIC18F4553/PIC18F4450 family devices
-	#define ConfigWordsSectionLength	14   	 //14 bytes worth of Configuration words on the PIC18F4550/PIC18F4553/PIC18F4450 family devices
-	#define UserIDAddress				0x200000 //User ID is 8 bytes starting at 0x200000
-	#define	UserIDSize					8
-	#define	DEVICE_WITH_EEPROM
-	#define	EEPROMSize					0x100	 //256 bytes of EEPROM on this device
-	#define EEPROMEffectiveAddress		0xF00000
-	#define	ProgramBlockSize			0x8	 //8 byte programming block size on the PIC18F14K50 family devices
-
-#endif
-
-//Switch State Variable Choices
-#define	QUERY_DEVICE				0x02	//Command that the host uses to learn about the device (what regions can be programmed, and what type of memory is the region)
-#define	UNLOCK_CONFIG				0x03	//Note, this command is used for both locking and unlocking the config bits (see the "//Unlock Configs Command Definitions" below)
-#define ERASE_DEVICE				0x04	//Host sends this command to start an erase operation.  Firmware controls which pages should be erased.
-#define PROGRAM_DEVICE				0x05	//If host is going to send a full RequestDataBlockSize to be programmed, it uses this command.
-#define	PROGRAM_COMPLETE			0x06	//If host send less than a RequestDataBlockSize to be programmed, or if it wished to program whatever was left in the buffer, it uses this command.
-#define GET_DATA					0x07	//The host sends this command in order to read out memory from the device.  Used during verify (and read/export hex operations)
-#define	RESET_DEVICE				0x08	//Resets the microcontroller, so it can update the config bits (if they were programmed, and so as to leave the bootloader (and potentially go back into the main application)
-
-//Unlock Configs Command Definitions
-#define UNLOCKCONFIG				0x00	//Sub-command for the ERASE_DEVICE command
-#define LOCKCONFIG					0x01	//Sub-command for the ERASE_DEVICE command
-
-//Query Device Response "Types" 
-#define	TypeProgramMemory			0x01	//When the host sends a QUERY_DEVICE command, need to respond by populating a list of valid memory regions that exist in the device (and should be programmed)
-#define TypeEEPROM					0x02
-#define TypeConfigWords				0x03
-#define	TypeEndOfTypeList			0xFF	//Sort of serves as a "null terminator" like number, which denotes the end of the memory region list has been reached.
-
-
-//BootState Variable States
-#define	IDLE						0x00
-#define NOT_IDLE    				0x01
-
-//OtherConstants
-#define INVALID_ADDRESS				0xFFFFFFFF
-#define CORRECT_UNLOCK_KEY          0xB5
-
-//Application and Microcontroller constants
-#define BytesPerAddressPIC18		0x01		//One byte per address.  PIC24 uses 2 bytes for each address in the hex file.
-
-#define	TotalPacketSize				0x40
-#define WORDSIZE					0x02	//PIC18 uses 2 byte words, PIC24 uses 3 byte words.
-#define RequestDataBlockSize 		0x3A	//Number of data bytes in a standard request to the PC.  Must be an even number from 2-58 (0x02-0x3A).  Larger numbers make better use of USB bandwidth and 
-											//yeild shorter program/verify times, but require more micrcontroller RAM for buffer space.
-#define BufferSize 					0x40
-
-/** I N C L U D E S **********************************************************/
 #include <p18cxxx.h>
 #include "typedefs.h"
 #include "usb.h"
 #include "io_cfg.h"             // I/O pin mapping
+#include "bootloader_protocol.h"
 
 
-typedef union 
-{
-		unsigned char Contents[64];
+#define COMMIT_KEY          0xB5
 
-		//General command (with data in it) packet structure used by PROGRAM_DEVICE and GET_DATA commands 		
-		struct{
-			unsigned char Command;
-			unsigned long Address;
-			unsigned char Size;
-//			unsigned char PadBytes[58-RequestDataBlockSize];	//Uncomment this if using a smaller than 0x3A RequestDataBlockSize.  Compiler doesn't like 0 byte array when using 58 byte data block size.
-			unsigned char Data[RequestDataBlockSize];
-		};
-		
-		//This struct used for responding to QUERY_DEVICE command (on a device with four programmable sections)
-		struct{
-			unsigned char Command;
-			unsigned char PacketDataFieldSize;
-			unsigned char BytesPerAddress;
-			unsigned char Type1;
-			unsigned long Address1;
-			unsigned long Length1;
-			unsigned char Type2;
-			unsigned long Address2;
-			unsigned long Length2;
-			unsigned char Type3;
-			unsigned long Address3;
-			unsigned long Length3;
-			unsigned char Type4;
-			unsigned long Address4;
-			unsigned long Length4;						
-			unsigned char Type5;
-			unsigned long Address5;
-			unsigned long Length5;
-			unsigned char Type6;
-			unsigned long Address6;
-			unsigned long Length6;			
-			unsigned char ExtraPadBytes[7];
-		};		
-		
-		struct{						//For UNLOCK_CONFIG command
-			unsigned char Command;
-			unsigned char LockValue;
-		};
-} PacketToFromPC;		
-	
+// Variables
+#pragma udata
+unsigned char setup_done;
+rx_packet_t rx_packet;
 
-/** V A R I A B L E S ********************************************************/
-#pragma udata SomeSectionName1
-unsigned short long ProgramMemStopAddress;
-unsigned char BootState;
-unsigned int ErasePageTracker;
-unsigned char BufferedDataIndex;
-unsigned short long ProgrammedPointer;
-unsigned char ConfigsLockValue;
-unsigned char ProgrammingBuffer[BufferSize];
-
-#pragma udata SomeSectionName2
-PacketToFromPC PacketFromPC;
-#pragma udata SomeSectionName3
-PacketToFromPC PacketToPC;
-
-/** P R I V A T E  P R O T O T Y P E S ***************************************/
-void BlinkUSBStatus(void);
-void UserInit(void);
-void WriteFlashBlock(void);
-void WriteConfigBits(void);
-void WriteEEPROM(void);
-void UnlockAndActivate(unsigned char UnlockKey);
-void ResetDeviceCleanly(void);
-void ClearWatchdog(void);
-void TableReadPostIncrement(void);
+byte packet_to_pc[64];
 
 
-/** D E C L A R A T I O N S **************************************************/
+// Prototypes
+void bootloader_init(void);
+void bootloader_process_io(void);
+void copy_to_table(ram byte* src);
+void commit_write(unsigned char key);
+void finalize_programming(void);
+//void ClearWatchdog(void);
+//void TableReadPostIncrement(void);
+
 #pragma code
-void UserInit(void)
+
+// Initialize the bootloader code
+void bootloader_init(void)
 {
-	//Initialize bootloader state variables
-	BootState = IDLE;
-	ProgrammedPointer = INVALID_ADDRESS;	
-	BufferedDataIndex = 0;
-	ConfigsLockValue = TRUE;
-}//end UserInit
+    setup_done = FALSE;
+}
 
 
-/******************************************************************************
- * Function:        void ProcessIO(void)
- *
- * PreCondition:    None
- *
- * Input:           None
- *
- * Output:          None
- *
- * Side Effects:    None
- *
- * Overview:        This function is a place holder for other user routines.
- *                  It is a mixture of both USB and non-USB tasks.
- *
- * Note:            None
- *****************************************************************************/
-void ProcessIO(void)
+// Main event loop of the bootloader
+void bootloader_process_io(void)
 {
-	unsigned char i;
+        byte tblow;
+        byte tbhigh;
 
-	if(BootState == IDLE)
+	if(!mHIDRxIsBusy())	//Did we receive a command?
 	{
-		if(!mHIDRxIsBusy())	//Did we receive a command?
-		{
-			HIDRxReport((char *)&PacketFromPC, 64);
-			BootState = NOT_IDLE;
+            HIDRxReport((byte *)&rx_packet, 64);
 			
-			for(i = 0; i < TotalPacketSize; i++)		//Prepare the next packet we will send to the host, by initializing the entire packet to 0x00.
-				PacketToPC.Contents[i] = 0;				//This saves code space, since we don't have to do it independently in the QUERY_DEVICE and GET_DATA cases.
-		}
-	}
-	else //(BootState must be NOT_IDLE)
-	{	
-		switch(PacketFromPC.Command)
-		{
-			case QUERY_DEVICE:
-			{
 
-			}
-				break;
-			case UNLOCK_CONFIG:
-			{
+            // The first byte of the received packet includes the command.
+            switch(rx_packet.generic_packet.command) {
+                case PROG_CMD_SETUP:
+                    // Check if the address is in the allowable
+                    // range
+                    if ((rx_packet.setup_packet.address._word < LOW_PROG_ADDRESS) ||
+                            (rx_packet.setup_packet.address._word > HIGH_PROG_ADDRESS))
+                        // TODO: Return NAK
+                        break;
 
-			}
-				break;
-			case ERASE_DEVICE:
-			{
-				//First erase main program flash memory
-				for(ErasePageTracker = StartPageToErase; ErasePageTracker < (unsigned int)(MaxPageToErase + 1); ErasePageTracker++)
-				{
-					ClearWatchdog();
-					TBLPTR = ((unsigned short long)ErasePageTracker << 6);
-					EECON1 = 0b10010100;	//Prepare for erasing flash memory
-					UnlockAndActivate(CORRECT_UNLOCK_KEY);
-					USBDriverService(); 	//Call USBDriverService() periodically to prevent falling off the bus if any SETUP packets should happen to arrive.
-				}
-				
-				BootState = IDLE;				
-			}
-				break;
-			case PROGRAM_DEVICE:
-			{
-				//Check if host is trying to program the config bits
-				if(PacketFromPC.Contents[3] == 0x30) // 			//PacketFromPC.Contents[3] is bits 23:16 of the address.  
-				{													//0x30 implies config bits
-					BootState = IDLE;
-					break;
-				}
+                    // Set the table pointer
+                    TBLPTRU = 0;
+                    TBLPTRH = MSB(rx_packet.setup_packet.address);
+                    TBLPTRL = LSB(rx_packet.setup_packet.address) & 0xe0;
 
-				if(ProgrammedPointer == (unsigned short long)INVALID_ADDRESS)
-					ProgrammedPointer = PacketFromPC.Address;
-				
-				if(ProgrammedPointer == (unsigned short long)PacketFromPC.Address)
-				{
-					for(i = 0; i < PacketFromPC.Size; i++)
-					{
-						ProgrammingBuffer[BufferedDataIndex] = PacketFromPC.Data[i+(RequestDataBlockSize-PacketFromPC.Size)];	//Data field is right justified.  Need to put it in the buffer left justified.
-						BufferedDataIndex++;
-						ProgrammedPointer++;
-						if(BufferedDataIndex == ProgramBlockSize)
-						{
-							WriteFlashBlock();
-						}
-					}
-				}
-				//else host sent us a non-contiguous packet address...  to make this firmware simpler, host should not do this without sending a PROGRAM_COMPLETE command in between program sections.
-				BootState = IDLE;
-			}
-				break;
-			case PROGRAM_COMPLETE:
-			{
-				WriteFlashBlock();
-				ProgrammedPointer = INVALID_ADDRESS;		//Reinitialize pointer to an invalid range, so we know the next PROGRAM_DEVICE will be the start address of a contiguous section.
-				BootState = IDLE;
-			}
-				break;
-			case GET_DATA:
-			{
-				//Init pad bytes to 0x00...  Already done after we received the QUERY_DEVICE command (just after calling HIDRxReport()).
-				PacketToPC.Command = GET_DATA;
-				PacketToPC.Address = PacketFromPC.Address;
-				PacketToPC.Size = PacketFromPC.Size;
+                    // Copy the data in the packet into the
+                    // table latches
+                    copy_to_table(&(rx_packet.setup_packet.data_low));
 
+                    // Set the setup flag to TRUE
+                    setup_done = TRUE;
+                    break;
 
-				TBLPTR = (unsigned short long)PacketFromPC.Address;
-				for(i = 0; i < PacketFromPC.Size; i++)
-				{
-					if(PacketFromPC.Contents[3] == 0xF0)	//PacketFromPC.Contents[3] is bits 23:16 of the address.  
-					{										//0xF0 implies EEPROM, which doesn't use the table pointer to read from
-						#if defined(DEVICE_WITH_EEPROM)
-						EEADR = (((unsigned char)PacketFromPC.Address) + i);	//The bits 7:0 are 1:1 mapped to the EEPROM address space values
-						EECON1 = 0b00000000;	//EEPROM read mode
-						EECON1bits.RD = 1;
-						PacketToPC.Data[i+((TotalPacketSize - 6) - PacketFromPC.Size)] = EEDATA;					
-						#endif
-					}
-					else	//else must have been a normal program memory region, or one that can be read from with the table pointer
-					{
-    					TableReadPostIncrement();
+                case PROG_CMD_EXEC:
+                    // Make sure a SETUP packet has already been
+                    // sent and processed
+                    if (!setup_done)
+                        // TODO: Return NAK
+                        break;
 
-                        //since 0x300004 and 0x300007 are not implemented we need to return 0xFF
-                        //  since the device reads 0x00 but the hex file has 0x00
-                        if(TBLPTRU == 0x30)
-                        {
-                            if(TBLPTRL == 0x05)
-                                TABLAT = 0xFF;
-                            if(TBLPTRL == 0x08)
-                                TABLAT = 0xFF;
-                        }
-                        PacketToPC.Data[i+((TotalPacketSize - 6) - PacketFromPC.Size)]=TABLAT;
-					}
-				}
+                    // Copy the highest 32 bytes to the table latches
+                    tblow = TBLPTRL;
+                    tbhigh = TBLPTRH;
+                    copy_to_table(&(rx_packet.exec_packet.data_high));
+                    
+                    // Restore the table pointer, so it will point to
+                    // the actual page being touched
+                    TBLPTRH = tbhigh;
+                    TBLPTRL = tblow;
 
-				if(!mHIDTxIsBusy())
-				{
-					HIDTxReport((char *)&PacketToPC, 64);
-					BootState = IDLE;
-				}
-			}
-				break;
-			case RESET_DEVICE:
-			    ResetDeviceCleanly();
-		}//End switch
-	}//End if/else
+                    // Erase the flash page
+                    EECON1 = 0b10010100;
+                    commit_write(COMMIT_KEY);
 
+                    // Write the data
+                    EECON1 = 0b10000100;
+                    commit_write(COMMIT_KEY);
+
+                    // Clear the setup flag
+                    setup_done = FALSE;
+                    break;
+
+                case PROG_CMD_FINALIZE:
+                    break;
+
+                default:
+                    break;
+
+            }
+
+        }
 }//End ProcessIO()
 
 
-//Before resetting the microcontroller, we should shut down the USB module 
-//gracefully, to make sure the host correctly recognizes that we detached
-//from the bus.
+
 void ResetDeviceCleanly(void)
 {
     static unsigned char i;
@@ -440,131 +180,30 @@ void ResetDeviceCleanly(void)
 	Nop();
 }    
 
-
-void WriteFlashBlock(void)		//Use to write blocks of data to flash.
+// Copies a block of data from the RAM to the table
+// latches. This function always copies 32 bytes.
+void copy_to_table(ram byte* src)
 {
-    static unsigned char i;
-	static unsigned char BytesTakenFromBuffer;
-	static unsigned char CorrectionFactor;
-
-    BytesTakenFromBuffer = 0;
-	TBLPTR = (ProgrammedPointer - BufferedDataIndex);
-
-	//Check the lower 5 bits of the TBLPTR to verify it is pointing to a 32 byte aligned block (5 LSb = 00000).
-	//If it isn't, need to somehow make it so before doing the actual loading of the programming latches.
-	//In order to maximize programming speed, the PC application meant to be used with this firmware will not send 
-	//large blocks of 0xFF bytes.  If the PC application
-	//detects a large block of unprogrammed space in the hex file (effectively = 0xFF), it will skip over that
-	//section and will not send it to the firmware.  This works, because the firmware will have already done an
-	//erase on that section of memory when it received the ERASE_DEVICE command from the PC.  Therefore, the section
-	//can be left unprogrammed (after an erase the flash ends up = 0xFF).
-	//This can result in a problem however, in that the next genuine non-0xFF section in the hex file may not start 
-	//on a 32 byte aligned block boundary.  This needs to be handled with care since the microcontroller can only 
-	//program 32 byte blocks that are aligned with 32 byte boundaries.
-	//So, use the below code to avoid this potential issue.
-
-	#if(ProgramBlockSize == 0x20)
-		CorrectionFactor = (TBLPTRL & 0b00011111);	//Correctionfactor = number of bytes tblptr must go back to find the immediate preceeding 32 byte boundary
-		TBLPTRL &= 0b11100000;						//Move the table pointer back to the immediately preceeding 32 byte boundary
-	#elif(ProgramBlockSize == 0x10)
-		CorrectionFactor = (TBLPTRL & 0b00001111);	//Correctionfactor = number of bytes tblptr must go back to find the immediate preceeding 16 byte boundary
-		TBLPTRL &= 0b11110000;						//Move the table pointer back to the immediately preceeding 16 byte boundary
-	#elif(ProgramBlockSize == 0x8)
-		CorrectionFactor = (TBLPTRL & 0b00000111);	//Correctionfactor = number of bytes tblptr must go back to find the immediate preceeding 16 byte boundary
-		TBLPTRL &= 0b11111000;						//Move the table pointer back to the immediately preceeding 16 byte boundary
-	#else
-		#error Double click this error message and fix this section for your microcontroller type.
-	#endif
-
-	for(i = 0; i < ProgramBlockSize; i++)	//Load the programming latches
-	{
-		if(CorrectionFactor == 0)
-		{
-			if(BufferedDataIndex != 0)	//If the buffer isn't empty
-			{
-				TABLAT = ProgrammingBuffer[BytesTakenFromBuffer];
-				_asm tblwtpostinc _endasm
-				BytesTakenFromBuffer++;
-				BufferedDataIndex--;	//Used up a byte from the buffer.
-			}
-			else	//No more data in buffer, need to write 0xFF to fill the rest of the programming latch locations
-			{
-				TABLAT = 0xFF;
-				_asm tblwtpostinc _endasm				
-			}
-		}
-		else
-		{
-			TABLAT = 0xFF;
-			_asm tblwtpostinc _endasm
-			CorrectionFactor--;
-		}
-	}
-
-//	TBLPTR--;		//Need to make table pointer point to the region which will be programmed before initiating the programming operation
-	_asm tblrdpostdec _endasm	//Do this instead of TBLPTR--; since it takes less code space.
-		
-	EECON1 = 0b10100100;	//flash programming mode
-	UnlockAndActivate(CORRECT_UNLOCK_KEY);
-
-	//Now need to fix the ProgrammingBuffer[].  We may not have taken a full 32 bytes out of the buffer.  In this case,
-	//the data is no longer justified correctly.
-	for(i = 0; i < BufferedDataIndex; i++)	//Need to rejustify the remaining data to the "left" of the buffer (if there is any left)
-	{
-		ProgrammingBuffer[i] = ProgrammingBuffer[BytesTakenFromBuffer+i];
-	}
+    byte i;
+    for(i=0; i < 32; i++) {
+        TABLAT = *src++;
+        _asm tblwtpostinc _endasm
+    }
 }
 
 
-void WriteConfigBits(void)	//Also used to write the Device ID
-{
-	static unsigned char i;
 
-	TBLPTR = (unsigned short long)PacketFromPC.Address;
-
-	for(i = 0; i < PacketFromPC.Size; i++)
-	{
-		TABLAT = PacketFromPC.Data[i+(RequestDataBlockSize-PacketFromPC.Size)];
-		_asm
-		tblwt
-		_endasm
-
-		EECON1 = 0b11000100;	//Config bits programming mode
-		UnlockAndActivate(CORRECT_UNLOCK_KEY);
-
-		_asm
-		tblrdpostinc
-		_endasm
-	}
-}
-
-#if defined(DEVICE_WITH_EEPROM)
-void WriteEEPROM(void)
-{
-	static unsigned char i;
-	
-	for(i = 0; i < PacketFromPC.Size; i++)
-	{
-		EEADR = (((unsigned char)PacketFromPC.Address) + i);
-		EEDATA = PacketFromPC.Data[i+(RequestDataBlockSize-PacketFromPC.Size)];
-
-		EECON1 = 0b00000100;	//EEPROM Write mode
-		UnlockAndActivate(CORRECT_UNLOCK_KEY);
-	}
-
-}
-#endif
 
 //It is preferrable to only place this sequence in only one place in the flash memory.
 //This reduces the probabilty of the code getting executed inadvertently by
 //errant code.
-void UnlockAndActivate(unsigned char UnlockKey)
+void commit_write(unsigned char key)
 {
 	INTCONbits.GIE = 0;		//Make certain interrupts disabled for unlock process.
 
     //Check to make sure the caller really was trying to call this function.
     //If they were, they should always pass us the CORRECT_UNLOCK_KEY.
-    if(UnlockKey != CORRECT_UNLOCK_KEY)
+    if(key != COMMIT_KEY)
     {
         //Warning!  Errant code execution detected.  Somehow this 
         //UnlockAndActivate() function got called by someone that wasn't trying
@@ -612,11 +251,3 @@ void ClearWatchdog(void)
 {
     ClrWdt();
 }    
-void TableReadPostIncrement(void)
-{
-	_asm tblrdpostinc _endasm    
-}    
-
-
-
-/** EOF BootPIC18NonJ.c *********************************************************/

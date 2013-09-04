@@ -16,5 +16,5 @@ public:
 
 private:
 	std::string serial_number;
-	hid_ifx* hid_io;
+	std::auto_ptr<hid_ifx> hid_io;
 };

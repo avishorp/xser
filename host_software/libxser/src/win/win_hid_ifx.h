@@ -11,7 +11,7 @@ public:
 	static std::auto_ptr<hid_ifx> from_child(LPCWSTR instance_id);
 
 	// Send a packet to the device through the HID interface
-	virtual void send_packet(int8_t* packet, int len) const;
+	virtual void send_packet(uint8_t* packet, int len) const;
 
 	// Receive a packet from the device through the HID interface
 	virtual std::shared_ptr<char> receive_packet() const;
