@@ -76,6 +76,8 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="intelhexclass.h" />
+    <ClInclude Include="page_iterator_ifx.h" />
     <ClInclude Include="src/win/stdafx.h" />
     <ClInclude Include="src/win/targetver.h" />
     <ClInclude Include="src\win\win_hid_ifx.h" />
@@ -87,6 +89,8 @@
   <ItemGroup>
     <ClCompile Include="abstract_xser_instance_dfu.cpp" />
     <ClCompile Include="abstract_xser_instance_manager.cpp" />
+    <ClCompile Include="ihex_parser.cpp" />
+    <ClCompile Include="intelhexclass.cpp" />
     <ClCompile Include="src/win/dllmain.cpp">
       <CompileAsManaged Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">false</CompileAsManaged>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
