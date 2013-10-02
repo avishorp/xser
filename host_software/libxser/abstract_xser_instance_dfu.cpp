@@ -12,32 +12,28 @@ using namespace std;
 using namespace xser;
 using namespace ihex_parser_ns;
 
-#define MIN_PROG_ADDRESS 0x1000
-#define PROG_SIZE        0x3000
+#define PROG_PAGE_SIZE 64
 
-void abstract_xser_instance_dfu::program_firmware(void* image, int len) const
+void abstract_xser_instance_dfu::program_firmware(image_t& image, progress_callback_t report_target) const
 {
-	ihex_parser ihx(MIN_PROG_ADDRESS, MIN_PROG_ADDRESS + PROG_SIZE - 1);
+	// Make sure the image is of the correct size
+	if (image.size() != FIRMWARE_SIZE)
+		throw new runtime_error("Incorrect firmware image size");
 
-	ifstream inf;
-	inf.open("U:\\projects\\xser\\firmware\\xser\\dist\\default\\production\\xser.production.hex", ifstream::in);
-
-	ihx.parse(inf);
-	image = (void*)ihx.get_buffer();
+	if (report_target != NULL)
+		report_target(0);
 
 	rx_packet_t packet;
-
-	int num_pages = PROG_SIZE / 16;
+	int num_pages = FIRMWARE_SIZE / PROG_PAGE_SIZE;
 	
-
 	for(int page = 0; page < num_pages; page++) {
 
 		// SETUP Packet
 		packet.setup_packet.command = PROG_CMD_SETUP;
-		packet.setup_packet.address = MIN_PROG_ADDRESS + page * 16;
+		packet.setup_packet.address = FIRMWARE_ADDR_START + page * PROG_PAGE_SIZE;
 
 		for(int i = 0; i < 32; i++) {
-			packet.setup_packet.data_low[i] = ((uint8_t*)image)[i + page*16];
+			packet.setup_packet.data_low[i] = image[i + page*PROG_PAGE_SIZE];
 		}
 
 		get_hid_io().send_packet((uint8_t*)&packet, 64);
@@ -47,11 +43,21 @@ void abstract_xser_instance_dfu::program_firmware(void* image, int len) const
 		packet.exec_packet.validation = 0xff;
 
 		for(int i = 0; i < 32; i++) {
-			packet.exec_packet.data_high[i] = ((uint8_t*)image)[i + page*16 + 16];
+			packet.exec_packet.data_high[i] = image[i + page*PROG_PAGE_SIZE + 32];
 		}
 
 		get_hid_io().send_packet((uint8_t*)&packet, 64);
+
+		if (report_target != NULL)
+			report_target(page * 95 / num_pages);
 	}
+
+	/////// FINALIZE
+	packet.generic_packet.command = PROG_CMD_FINALIZE;
+	get_hid_io().send_packet((uint8_t*)&packet, 64);
+
+	if (report_target != NULL)
+		report_target(100);
 
 }
 

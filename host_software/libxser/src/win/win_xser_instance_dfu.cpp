@@ -23,8 +23,6 @@ win_xser_instance_dfu::win_xser_instance_dfu(std::string& serial, HDEVINFO dev_i
 
 	hid_io = win_hid_ifx::from_child(children);
 
-	program_firmware(0, 0);
-
 }
 
 win_xser_instance_dfu::~win_xser_instance_dfu()

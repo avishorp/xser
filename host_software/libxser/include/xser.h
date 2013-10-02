@@ -45,6 +45,11 @@
 #define XSER_PID     L"6059"
 #define XSER_PID_DFU L"6069"
 
+// Programming related constants
+#define FIRMWARE_ADDR_START    0x1000     // Firmware start address
+#define FIRMWARE_ADDR_END      0x3fff     // Firmware end address
+#define FIRMWARE_SIZE          (FIRMWARE_ADDR_END - FIRMWARE_ADDR_START + 1)
+
 
 
 namespace xser {
@@ -63,8 +68,8 @@ public:
 	virtual const std::string& get_serial_number() const = 0;
 };
 
-typedef std::vector <std::tr1::shared_ptr<const xser_instance_ifx>> xser_instances_t;
-typedef xser_instances_t::const_iterator xser_instances_iter_t;
+typedef EXPORT std::vector <std::tr1::shared_ptr<const xser_instance_ifx>> xser_instances_t;
+typedef EXPORT xser_instances_t::const_iterator xser_instances_iter_t;
 
 
 // An interface representig an xser device instance connected to the computer and
@@ -85,12 +90,15 @@ public:
 	virtual void enter_dfu() const = 0;
 };
 
+typedef std::vector<unsigned char> image_t;
+typedef void (*progress_callback_t)(int);
+
 // An interface representing an xser device instance connected to the computer and
 // operating in DFU (firmware upgrade) mode
 class EXPORT xser_instance_dfu_ifx: public xser_instance_ifx {
 public:
 	// Program a new firmware
-	virtual void program_firmware(void* image, int len) const = 0;
+	virtual void program_firmware(image_t& image, progress_callback_t report_target = NULL) const = 0;
 
 	// Finalize the programming and resume normal operation
 	virtual void finalize_programming() const = 0;
@@ -195,7 +203,7 @@ public:
 	//////////////////////////////
 public:
 	// Program a new firmware
-	virtual void program_firmware(void* image, int len) const;
+	virtual void program_firmware(image_t& image, progress_callback_t report_target = NULL) const;
 
 	// Finalize the programming and resume normal operation
 	virtual void finalize_programming() const;

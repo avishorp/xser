@@ -110,5 +110,8 @@ std::auto_ptr<hid_ifx> win_hid_ifx::from_child(LPCWSTR instance_id)
 			return hid_io;
 		}
 	}
+
+	// If wer'e at this point, we coudn't find the HID interface
+	throw runtime_error("Could not find a HID interface");
 }
 

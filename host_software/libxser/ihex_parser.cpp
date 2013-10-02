@@ -138,12 +138,8 @@ void ihex_parser::parse_line(const string& line)
 	if (line.length() < 1)
 		return;
 
-	string j("x");
-int k = (line.length() & 0x01);
-char z = line[0];
-
 	// Make sure the line is well formed
-	if ((z == ':') && ((line.length() & 0x01) == 1))
+	if ((line[0] == ':') && ((line.length() & 0x01) == 1))
 	{
 		// Parse the hexadecimal chars into a byte array
 		int line_data_size = (line.length()-1)/2;

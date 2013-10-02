@@ -115,7 +115,7 @@ void win_xser_instance_manager::rescan()
 			xser_instances.push_back(xsi);
 		}
 		else if (_wcsnicmp(HWID_DFU_STRING, hardware_id, hwid_dfu_length) == 0)
-		{
+		{                            
 			// Hardware ID match (operational)
 			get_verbose_stream() << "Match (DFU)" << endl;
 
@@ -123,7 +123,7 @@ void win_xser_instance_manager::rescan()
 			auto_ptr<string> serial = get_serial_number(device_info_set, &device_info_data);
 
 			// Create a new DFU xser instance object
-			shared_ptr<xser_instance_ifx> xsi(new win_xser_instance_dfu(*serial, device_info_set, &device_info_data));
+ 			shared_ptr<xser_instance_ifx> xsi(new win_xser_instance_dfu(*serial, device_info_set, &device_info_data));
 
 			// Add it to the list
 			xser_instances.push_back(xsi);
