@@ -16,6 +16,8 @@ public:
 	// Receive a packet from the device through the HID interface
 	virtual std::shared_ptr<char> receive_packet() const;
 
+	virtual void set_timeout(int to) const;
+
 private:
 	HANDLE hid_handle;
 

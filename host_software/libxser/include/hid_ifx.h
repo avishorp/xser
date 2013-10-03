@@ -15,6 +15,9 @@ public:
 
 	// Receive a packet from the device through the HID interface
 	virtual std::shared_ptr<char> receive_packet() const = 0;
+
+	// Set the allowable read timeout (in milliseconds)
+	virtual void set_timeout(int to) const = 0;
 };
 
 #endif // #ifndef __HID_IFX_H__

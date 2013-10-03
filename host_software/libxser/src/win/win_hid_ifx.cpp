@@ -42,10 +42,31 @@ void win_hid_ifx::send_packet(uint8_t* packet, int len) const
 }
 
 
-
 std::shared_ptr<char> win_hid_ifx::receive_packet() const
 {
-	return 0;
+	char* buf = new char[65];
+	memset(buf, 0, 65);
+	DWORD num_read;
+	BOOLEAN r = ReadFile(hid_handle, buf, 65, &num_read, NULL);
+
+	if (r) {
+		return shared_ptr<char>(buf);
+	}
+	else {
+		DWORD err = GetLastError();
+		return 0;
+	}
+}
+
+void win_hid_ifx::set_timeout(int to) const 
+{
+	// TODO: This doesn't work, have to switch to overlapped I/O
+	COMMTIMEOUTS tos;
+	memset(&tos, 0, sizeof(COMMTIMEOUTS));
+	tos.ReadIntervalTimeout = to;
+	tos.ReadTotalTimeoutMultiplier = 1;
+	tos.WriteTotalTimeoutConstant = to;
+	SetCommTimeouts(hid_handle, &tos);
 }
 
 std::auto_ptr<hid_ifx> win_hid_ifx::from_child(LPCWSTR instance_id)
