@@ -103,6 +103,9 @@ int main(char* argv[], int argc)
 	}
 	else {
 		// The selected xser is not in DFU mode
+	shared_ptr<const xser_instance_oper_ifx> x = static_pointer_cast<const xser_instance_oper_ifx>
+			(selected);
+	x->enter_dfu();
 	}
 
 

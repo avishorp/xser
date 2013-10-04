@@ -2,7 +2,7 @@
 #include <xser.h>
 #include <string>
 #include <stdint.h>
-#include "../../../firmware/xser/xser_hid.h"
+#include "../../../firmware/xser/hid_protocol.h"
 
 using namespace std;
 using namespace xser;
@@ -26,6 +26,21 @@ void abstract_xser_instance_oper::get_firmware_version(int& major, int& minor) c
 }
 
 void abstract_xser_instance_oper::enter_dfu() const {
+	// Create a request buffer
+	packet_enter_dfu_t req;
+	memset(&req, 0, sizeof(req));
+
+	req.command = XSER_HID_ENTER_DFU;
+	req.unlock[0] = DFU_UNLOCK_0;
+	req.unlock[1] = DFU_UNLOCK_1;
+	req.unlock[2] = DFU_UNLOCK_2;
+	req.unlock[3] = DFU_UNLOCK_3;
+
+	// Send the request
+	const hid_ifx& h = get_hid_io();
+	h.send_packet((uint8_t*)&req, sizeof(req));
+
+	// No response to wait for
 }
 
 

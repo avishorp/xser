@@ -210,6 +210,8 @@ public:
 
 private:
 	uint16_t calc_checksum(uint8_t* buf, unsigned int size) const;
+
+	bool wait_for_response_packet() const;
 };
 
 #ifdef BUILD_WINDOWS
