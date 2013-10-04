@@ -98,10 +98,10 @@ typedef void (*progress_callback_t)(int);
 class EXPORT xser_instance_dfu_ifx: public xser_instance_ifx {
 public:
 	// Program a new firmware
-	virtual void program_firmware(image_t& image, progress_callback_t report_target = NULL) const = 0;
+	virtual bool program_firmware(image_t& image, progress_callback_t report_target = NULL) const = 0;
 
-	// Finalize the programming and resume normal operation
-	virtual void finalize_programming() const = 0;
+	// Reset the device
+	virtual void reset_device() const = 0;
 };
 
 class EXPORT xser_instance_manager_ifx {
@@ -203,10 +203,13 @@ public:
 	//////////////////////////////
 public:
 	// Program a new firmware
-	virtual void program_firmware(image_t& image, progress_callback_t report_target = NULL) const;
+	virtual bool program_firmware(image_t& image, progress_callback_t report_target = NULL) const;
 
-	// Finalize the programming and resume normal operation
-	virtual void finalize_programming() const;
+	// Reset the device
+	virtual void reset_device() const;
+
+private:
+	uint16_t calc_checksum(uint8_t* buf, unsigned int size) const;
 };
 
 #ifdef BUILD_WINDOWS

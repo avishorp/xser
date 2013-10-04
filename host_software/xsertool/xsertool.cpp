@@ -85,12 +85,25 @@ int main(char* argv[], int argc)
 	bool g = hex_file.good();
 	ihp.parse(hex_file);
 
-	shared_ptr<const xser_instance_dfu_ifx> dfu = static_pointer_cast<const xser_instance_dfu_ifx>
-		(xsers[program_index-1]);
-	int ssss = FIRMWARE_SIZE;
-	image_t firmware_image(ihp.get_buffer(), ihp.get_buffer() + FIRMWARE_SIZE);
+	shared_ptr<const xser_instance_ifx> selected = xsers[program_index-1];
 
-	dfu->program_firmware(firmware_image, [] (int progress) { cout << "Programming " << progress << "%\r" << flush; });
+	if (selected->is_dfu_mode()) {
+		shared_ptr<const xser_instance_dfu_ifx> dfu = static_pointer_cast<const xser_instance_dfu_ifx>
+			(selected);
+	
+		image_t firmware_image(ihp.get_buffer(), ihp.get_buffer() + FIRMWARE_SIZE);
+
+		if (!(dfu->program_firmware(firmware_image, [] (int progress) { cout << "Programming " << progress << "%\r" << flush; }))) {
+			cout << "\nProgramming failed !!!" << endl;
+		}
+		else {
+			cout << "\nProgramming succeedded, resetting device" << endl;
+			dfu->reset_device();
+		}
+	}
+	else {
+		// The selected xser is not in DFU mode
+	}
 
 
 }

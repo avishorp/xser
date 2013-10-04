@@ -82,7 +82,7 @@ ihex_parser::ihex_parser(unsigned long start_addr, unsigned long end_addr, byte 
 
 	// Allocate a buffer for the data and fill
 	// it with the default value
-	unsigned long buf_size = end_addr - start_addr + 1;
+	unsigned long buf_size = end_addr - start_addr + 1 + 30;
 	buf_data = new byte[buf_size];
 	memset(buf_data, default_value, buf_size);
 
@@ -127,7 +127,6 @@ void ihex_parser::parse(std::istream& hex_stream)
 		// Parse the line
 		parse_line(ln);
 		current_line++;
-		cout << current_line << endl;
 	}
 }
 
