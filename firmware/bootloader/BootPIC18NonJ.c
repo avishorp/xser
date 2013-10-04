@@ -88,11 +88,13 @@ void bootloader_process_io(void)
         ROM byte* rp;
         unsigned int checksum;
 
+        // Clear the response packet
+        memset(&response_packet, 0, sizeof(response_packet));
+
 	if(!mHIDRxIsBusy())	//Did we receive a command?
 	{
             HIDRxReport((byte *)&rx_packet, 64);
 			
-
             // The first byte of the received packet includes the command.
             switch(rx_packet.generic_packet.command) {
                 case PROG_CMD_SETUP:
@@ -100,7 +102,6 @@ void bootloader_process_io(void)
                     // range
                     if ((rx_packet.setup_packet.address._word < LOW_PROG_ADDRESS) ||
                             (rx_packet.setup_packet.address._word > HIGH_PROG_ADDRESS))
-                        // TODO: Return NAK
                         break;
 
                     // Set the table pointer
@@ -114,13 +115,13 @@ void bootloader_process_io(void)
 
                     // Set the setup flag to TRUE
                     setup_done = TRUE;
+                    response_packet.result = 1;
                     break;
 
                 case PROG_CMD_EXEC:
                     // Make sure a SETUP packet has already been
                     // sent and processed
                     if (!setup_done)
-                        // TODO: Return NAK
                         break;
 
                     // Copy the highest 32 bytes to the table latches
@@ -143,6 +144,7 @@ void bootloader_process_io(void)
 
                     // Clear the setup flag
                     setup_done = FALSE;
+                    response_packet.result = 1;
                     break;
 
                 case PROG_CMD_FINALIZE:
@@ -154,18 +156,15 @@ void bootloader_process_io(void)
                     // Verify it
                     if (rx_packet.finalize_packet.checksum._word != checksum) {
                         // Checksum failed - Transmit a Fail packet
-                        while(mHIDTxIsBusy());
-                        response_packet.result = 0x0;
                         response_packet.padding[0] = checksum & 0xff;
                         response_packet.padding[1] = (checksum >> 8) & 0xff;
-			HIDTxReport((char *)&response_packet, 64);
+                        break;
                     }
                     else {
                         // Checksum passed - write magic code to EEPROM
                         // and transmit 'success' packet
-                        while(mHIDTxIsBusy());
                         response_packet.result = 0x1;
-			HIDTxReport((char *)&response_packet, 64);
+			
 
                         // Write the magic code to the EEPROM
                         EECON1 = 0b00000100;
@@ -193,6 +192,9 @@ void bootloader_process_io(void)
 
             }
 
+            // Send the response packet
+            while(mHIDTxIsBusy());
+            HIDTxReport((char *)&response_packet, 64);
         }
 }//End ProcessIO()
 

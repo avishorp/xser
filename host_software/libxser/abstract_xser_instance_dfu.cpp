@@ -42,6 +42,8 @@ bool abstract_xser_instance_dfu::program_firmware(image_t& image, progress_callb
 		}
 
 		get_hid_io().send_packet((uint8_t*)&packet, 64);
+		if (!wait_for_response_packet())
+			return false;
 
 		// EXEC Packet
 		packet.exec_packet.command = PROG_CMD_EXEC;
@@ -52,6 +54,8 @@ bool abstract_xser_instance_dfu::program_firmware(image_t& image, progress_callb
 		}
 
 		get_hid_io().send_packet((uint8_t*)&packet, 64);
+		if (!wait_for_response_packet())
+			return false;
 
 		if (report_target != NULL)
 			report_target(page * 95 / num_pages);
@@ -63,13 +67,8 @@ bool abstract_xser_instance_dfu::program_firmware(image_t& image, progress_callb
 	packet.generic_packet.command = PROG_CMD_FINALIZE;
 	get_hid_io().send_packet((uint8_t*)&packet, 64);
 
-	std::shared_ptr<char> rb = get_hid_io().receive_packet();
-	int result = rb.get()[1];
-
-	if (result == 0)
-		// Programming failed
+	if (!wait_for_response_packet())
 		return false;
-
 
 	// Programming succeeded
 	if (report_target != NULL)
@@ -77,15 +76,6 @@ bool abstract_xser_instance_dfu::program_firmware(image_t& image, progress_callb
 
 	return true;
 
-}
-
-uint16_t abstract_xser_instance_dfu::calc_checksum(uint8_t* buf, unsigned int size) const
-{
-	uint16_t checksum = 0;
-	for(int i = 0; i < size; i++)
-		checksum += (unsigned char)buf[i];
-
-	return checksum;
 }
 
 void abstract_xser_instance_dfu::reset_device() const
@@ -102,4 +92,19 @@ void abstract_xser_instance_dfu::reset_device() const
 	get_hid_io().send_packet((uint8_t*)&packet, 64);
 
 
+}
+
+uint16_t abstract_xser_instance_dfu::calc_checksum(uint8_t* buf, unsigned int size) const
+{
+	uint16_t checksum = 0;
+	for(int i = 0; i < size; i++)
+		checksum += (unsigned char)buf[i];
+
+	return checksum;
+}
+
+bool abstract_xser_instance_dfu::wait_for_response_packet() const
+{
+	shared_ptr<char> r = get_hid_io().receive_packet();
+	return (r.get()[1] != 0);
 }
