@@ -14,13 +14,22 @@
 #define PROG_CMD_SETUP      0x01
 #define PROG_CMD_EXEC       0x02
 #define PROG_CMD_FINALIZE   0x03
+#define PROG_CMD_RESET      0x04
+
+// Reset unlock code
+#define RESET_UNLOCK_0      0x78
+#define RESET_UNLOCK_1      0xa0
+#define RESET_UNLOCK_2      0x23
+#define RESET_UNLOCK_3      0x01
 
 #ifdef __18CXX
 #define UINT8   byte
 #define UINT16  WORD
+#define UINT32  unsigned long
 #elif defined(_MSC_VER)
 #define UINT8  uint8_t
 #define UINT16 uint16_t
+#define UINT32 uint32_t
 #endif
 
 #ifdef _MSC_VER
@@ -48,14 +57,27 @@ typedef struct {
 typedef struct {
     UINT8   command;
     UINT16  checksum;
+    UINT8   padding[64 - 1 - 2];
 } packet_finalize_t;
+
+typedef struct {
+    UINT8   command;
+    UINT8   unlock[4];
+    UINT8   padding[64 - 1 - 4];
+} packet_reset_t;
 
 typedef union {
     packet_generic_t  generic_packet;
     packet_setup_t    setup_packet;
     packet_exec_t     exec_packet;
     packet_finalize_t finalize_packet;
+    packet_reset_t    reset_packet;
 } rx_packet_t;
+
+typedef struct {
+    UINT8   result;
+    UINT8   padding[63];
+} response_packet_t;
 
 
 #endif	/* BOOTLOADER_PROTOCOL_H */

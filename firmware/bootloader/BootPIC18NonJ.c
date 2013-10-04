@@ -48,6 +48,8 @@
 #include "io_cfg.h"             // I/O pin mapping
 #include "bootloader_protocol.h"
 
+#pragma rom
+const byte dfu_magic_code[4] = {0x35, 0xfa, 0x00, 0x18};
 
 #define COMMIT_KEY          0xB5
 
@@ -55,9 +57,7 @@
 #pragma udata
 unsigned char setup_done;
 rx_packet_t rx_packet;
-
-byte packet_to_pc[64];
-
+response_packet_t response_packet;
 
 // Prototypes
 void bootloader_init(void);
@@ -65,6 +65,8 @@ void bootloader_process_io(void);
 void copy_to_table(ram byte* src);
 void commit_write(unsigned char key);
 void finalize_programming(void);
+void ResetDeviceCleanly(void);
+
 //void ClearWatchdog(void);
 //void TableReadPostIncrement(void);
 
@@ -82,6 +84,9 @@ void bootloader_process_io(void)
 {
         byte tblow;
         byte tbhigh;
+        byte i;
+        ROM byte* rp;
+        unsigned int checksum;
 
 	if(!mHIDRxIsBusy())	//Did we receive a command?
 	{
@@ -141,7 +146,47 @@ void bootloader_process_io(void)
                     break;
 
                 case PROG_CMD_FINALIZE:
+                    // Calculate 16-bit checksum
+                    checksum = 0;
+                    for(rp = (rom byte*)LOW_PROG_ADDRESS; rp <= (rom byte*)HIGH_PROG_ADDRESS; rp++)
+                        checksum += (unsigned char)(*rp);
+
+                    // Verify it
+                    if (rx_packet.finalize_packet.checksum._word != checksum) {
+                        // Checksum failed - Transmit a Fail packet
+                        while(mHIDTxIsBusy());
+                        response_packet.result = 0x0;
+                        response_packet.padding[0] = checksum & 0xff;
+                        response_packet.padding[1] = (checksum >> 8) & 0xff;
+			HIDTxReport((char *)&response_packet, 64);
+                    }
+                    else {
+                        // Checksum passed - write magic code to EEPROM
+                        // and transmit 'success' packet
+                        while(mHIDTxIsBusy());
+                        response_packet.result = 0x1;
+			HIDTxReport((char *)&response_packet, 64);
+
+                        // Write the magic code to the EEPROM
+                        EECON1 = 0b00000100;
+                        for(i = 0; i < 4; i++) {
+                            EEADR = i;
+                            EEDATA = dfu_magic_code[i];
+                            EECON1bits.WREN = 1;
+                            commit_write(COMMIT_KEY);
+                        }
+                    }
                     break;
+
+                case PROG_CMD_RESET:
+                    // Check that the unlock code
+                    if ((rx_packet.reset_packet.unlock[0] != RESET_UNLOCK_0) ||
+                        (rx_packet.reset_packet.unlock[1] != RESET_UNLOCK_1) ||
+                        (rx_packet.reset_packet.unlock[2] != RESET_UNLOCK_2) ||
+                        (rx_packet.reset_packet.unlock[3] != RESET_UNLOCK_3))
+                        //TODO: Send Nak packet
+                        break;
+                    ResetDeviceCleanly();
 
                 default:
                     break;

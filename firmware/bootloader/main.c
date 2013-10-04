@@ -86,6 +86,9 @@ bootloader to use more program memory.
 #include "io_cfg.h"                     
 #include "BootPIC18NonJ.h"
 
+// The magic code is defined in BootPIC18NonJ.c
+extern const byte dfu_magic_code[4];
+
 /** C O N F I G U R A T I O N ************************************************/
 // Note: For a complete list of the available config pragmas and their values, 
 // see the compiler documentation, and/or click "Help --> Topics..." and then 
@@ -139,38 +142,34 @@ void interrupt_at_low_vector(void)
 void main(void)
 {
     unsigned char t;
+    unsigned char magic_flag;
 
     //Need to make sure RB4 can be used as a digital input pin.
 
+    // Check the magic code in the EEPROM
+    magic_flag = 1;
+    EECON1 = 0b00000000; // EEPROM read
+    for(t = 0; t < 4; t++) {
+        EEADR = t;
+        EECON1bits.RD = 1;
+        if (EEDATA != dfu_magic_code[t])
+            magic_flag = 0;
+    }
+
     //Check Bootload Mode Entry Condition
-	if(0 == 1)	//This example uses the sw2 I/O pin to determine if the device should enter the bootloader, or the main application code
+	if(magic_flag == 1)	//This example uses the sw2 I/O pin to determine if the device should enter the bootloader, or the main application code
 	{
     	//Restore default "reset" value of registers we may have modified temporarily.
 
 		_asm
-//		goto 0x1000			//If the user is not trying to enter the bootloader, go straight to the main application remapped "reset" vector.
+		goto 0x1000			//If the user is not trying to enter the bootloader, go straight to the main application remapped "reset" vector.
 		_endasm
 	}
 
     //We have decided to stay in this bootloader firwmare project.  Initialize
     //this firmware and the USB module.
     InitializeSystem();
-/*
-    TBLPTRU = 0;
-    TBLPTRH = 0x15;
-    TBLPTRL = 0;
 
-    EECON1 = 0b10110100;	//flash programming mode
-    UnlockAndActivate(0xB5);
-
-    for (t=0; t < 64; t++) {
-        TABLAT = t+1;
-        _asm tblwtpostinc _endasm
-    }
-    TBLPTRL = 0;
-EECON1 = 0b10100100;	//flash programming mode
-	UnlockAndActivate(0xB5);
-*/
     //Execute main loop
     while(1)
     {
@@ -266,9 +265,10 @@ static void InitializeSystem(void)
     LATB = 0;
     LATC = 0b11111110;
 
-LATA = 0;
-LATB = 0;
-LATC = 0;
+    // For debugging - turn LCD off
+    //LATA = 0;
+    //LATB = 0;
+    //LATC = 0;
 
     InitSerialNumber();
 
