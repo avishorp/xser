@@ -25,7 +25,6 @@ extern "C" {
 
 /// GET_VERSION
 /// -----------
-///
 /// Description: Retrieves the firmware version
 /// Request Packet: [COMMAND]
 /// Response Packet: [MAJOR] [MINOR]
@@ -68,6 +67,16 @@ typedef struct {
     UINT8   command;
     UINT8   padding[64 - 1];
 } packet_generic_t;
+
+typedef struct {
+    UINT8   command;
+    UINT8   padding[64 - 1];
+} packet_get_version_t;
+
+typedef struct {
+    UINT8   minor;
+    UINT8   major;
+} response_get_version_t;
 
 typedef struct {
     UINT8   command;
