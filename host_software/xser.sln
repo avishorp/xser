@@ -1,0 +1,38 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Express 2012 for Windows Desktop
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "libxser", "libxser\libxser.vcxproj", "{6CA97B81-508D-4959-838F-2C83EE64DFFF}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "xsertool", "xsertool\xsertool.vcxproj", "{12B47017-A735-4889-97D4-773A08BB23FD}"
+	ProjectSection(ProjectDependencies) = postProject
+		{6CA97B81-508D-4959-838F-2C83EE64DFFF} = {6CA97B81-508D-4959-838F-2C83EE64DFFF}
+	EndProjectSection
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "xserserv", "xserserv\xserserv.vcxproj", "{5C066AE0-F295-4F92-B7F2-6A0EDA8CC9BC}"
+	ProjectSection(ProjectDependencies) = postProject
+		{6CA97B81-508D-4959-838F-2C83EE64DFFF} = {6CA97B81-508D-4959-838F-2C83EE64DFFF}
+	EndProjectSection
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Win32 = Debug|Win32
+		Release|Win32 = Release|Win32
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{6CA97B81-508D-4959-838F-2C83EE64DFFF}.Debug|Win32.ActiveCfg = Debug|Win32
+		{6CA97B81-508D-4959-838F-2C83EE64DFFF}.Debug|Win32.Build.0 = Debug|Win32
+		{6CA97B81-508D-4959-838F-2C83EE64DFFF}.Release|Win32.ActiveCfg = Release|Win32
+		{6CA97B81-508D-4959-838F-2C83EE64DFFF}.Release|Win32.Build.0 = Release|Win32
+		{12B47017-A735-4889-97D4-773A08BB23FD}.Debug|Win32.ActiveCfg = Debug|Win32
+		{12B47017-A735-4889-97D4-773A08BB23FD}.Debug|Win32.Build.0 = Debug|Win32
+		{12B47017-A735-4889-97D4-773A08BB23FD}.Release|Win32.ActiveCfg = Release|Win32
+		{12B47017-A735-4889-97D4-773A08BB23FD}.Release|Win32.Build.0 = Release|Win32
+		{5C066AE0-F295-4F92-B7F2-6A0EDA8CC9BC}.Debug|Win32.ActiveCfg = Debug|Win32
+		{5C066AE0-F295-4F92-B7F2-6A0EDA8CC9BC}.Debug|Win32.Build.0 = Debug|Win32
+		{5C066AE0-F295-4F92-B7F2-6A0EDA8CC9BC}.Release|Win32.ActiveCfg = Release|Win32
+		{5C066AE0-F295-4F92-B7F2-6A0EDA8CC9BC}.Release|Win32.Build.0 = Release|Win32
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal
