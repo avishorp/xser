@@ -1,6 +1,7 @@
 // Windows-specific xser classes
 
 #include "xser.h"
+#include "../abstract_xser_instance.h"
 #include <vector>
 #include <iostream>
 #include <hid_ifx.h>

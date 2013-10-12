@@ -1,4 +1,5 @@
 #include <xser.h>
+#include "../abstract_xser_instance.h"
 #include <string>
 
 class win_xser_instance_dfu: public xser::abstract_xser_instance_dfu {
@@ -13,6 +14,9 @@ protected:
 
 public:
 	virtual const std::string& get_serial_number() const { return serial_number; }
+
+	virtual const uint32_t get_physical_id() const { return 0; }
+
 
 private:
 	std::string serial_number;

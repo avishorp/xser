@@ -19,6 +19,8 @@ public:
 public:
 	virtual int get_associated_com_number() const { return com_number; }
 
+	virtual const uint32_t get_physical_id() const { return 0; }
+
 private:
 	std::string serial_number;
 	int com_number;

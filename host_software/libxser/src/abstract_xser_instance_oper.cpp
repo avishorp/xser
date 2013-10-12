@@ -1,5 +1,6 @@
 
 #include <xser.h>
+#include "abstract_xser_instance.h"
 #include <string>
 #include <stdint.h>
 #include "../../../firmware/xser/hid_protocol.h"

@@ -89,9 +89,6 @@
     <ClInclude Include="src\win\xser_instance_oper.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="abstract_xser_instance_dfu.cpp" />
-    <ClCompile Include="abstract_xser_instance_manager.cpp" />
-    <ClCompile Include="ihex_parser.cpp" />
     <ClCompile Include="src/win/dllmain.cpp">
       <CompileAsManaged Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">false</CompileAsManaged>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
@@ -100,6 +97,9 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
       </PrecompiledHeader>
     </ClCompile>
+    <ClCompile Include="src\abstract_xser_instance_dfu.cpp" />
+    <ClCompile Include="src\abstract_xser_instance_manager.cpp" />
+    <ClCompile Include="src\ihex_parser.cpp" />
     <ClCompile Include="src\win\win_hid_ifx.cpp" />
     <ClCompile Include="src\win\win_xser.cpp" />
     <ClCompile Include="src/win/stdafx.cpp">

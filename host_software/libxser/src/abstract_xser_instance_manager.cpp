@@ -1,4 +1,5 @@
 #include <xser.h>
+#include "abstract_xser_instance.h"
 
 using namespace xser;
 

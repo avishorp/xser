@@ -1,10 +1,11 @@
 #include <xser.h>
+#include "abstract_xser_instance.h"
 #include <string>
 #include <stdint.h>
 #include <memory.h>
 #include <iostream>
 #include <fstream>
-#include "../../firmware/bootloader/bootloader_protocol.h"
+#include "../../../firmware/bootloader/bootloader_protocol.h"
 #include <iterator>
 #include "ihex_parser.h"
 

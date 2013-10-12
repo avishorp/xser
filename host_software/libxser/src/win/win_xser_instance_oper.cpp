@@ -1,6 +1,7 @@
 
 #include "stdafx.h"
 #include <xser.h>
+#include "../abstract_xser_instance.h"
 #include "win_xser_instance_oper.h"
 #include "win_hid_ifx.h"
 
@@ -26,12 +27,17 @@ win_xser_instance_oper::win_xser_instance_oper(string& serial, HDEVINFO dev_info
 	if (world_device_info_set == INVALID_HANDLE_VALUE) 
 		throw runtime_error("Could not get all device information set");
 
+	// Get the physical path and generate a physical ID
+	uint8_t physical;
+	BOOLEAN r;
+	//BOOLEAN r = SetupDiGetDeviceProperty(dev_info_set, dev_info_data, &DEVPKEY_Device_PhysicalDeviceLocation, NULL, (PBYTE)physical, 100, NULL, 0);
+
 
 	// Scan through the children of the device. This function returns a list of null-separated
 	// childrens
 	DWORD children_type;
 	WCHAR children[1000];
-	BOOLEAN r = SetupDiGetDeviceProperty(dev_info_set, dev_info_data, &DEVPKEY_Device_Children, &children_type, (PBYTE)children, 1000, NULL, 0);
+	r = SetupDiGetDeviceProperty(dev_info_set, dev_info_data, &DEVPKEY_Device_Children, &children_type, (PBYTE)children, 1000, NULL, 0);
 	if (!r)
 		throw runtime_error("Cannot obtain children");
 
