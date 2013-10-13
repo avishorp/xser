@@ -8,16 +8,20 @@
 #include <regex>
 
 using namespace std;
+using namespace xser;
 
 // A regular expression for searching the COMx number
 std::tr1::basic_regex<WCHAR> regex_com(L"COM([0-9]+)");
 
-win_xser_instance_oper::win_xser_instance_oper(string& serial, HDEVINFO dev_info_set, PSP_DEVINFO_DATA dev_info_data)
+win_xser_instance_oper::win_xser_instance_oper(string& serial, HDEVINFO dev_info_set, PSP_DEVINFO_DATA dev_info_data,
+											   physical_location_t& physical_loc_)
 {
 	// Set default member variables
 	serial_number = serial;
 	com_number = -1;
 	hid_io = NULL;
+	valid = false;
+	physical_loc = physical_loc_;
 
 	// Prepare an info set of all the device. It will be used later
 	// when device children are processed
@@ -58,6 +62,8 @@ win_xser_instance_oper::win_xser_instance_oper(string& serial, HDEVINFO dev_info
 	// need
 	if ((com_number == -1) || (hid_io == NULL))
 		throw runtime_error("Incorrect USB device structure");
+
+	valid = true;
 }
 
 void win_xser_instance_oper::process_child(HDEVINFO world_device_info_set, LPCWSTR child_id)
@@ -161,5 +167,32 @@ win_xser_instance_oper::~win_xser_instance_oper()
 	if (hid_io != NULL)
 		delete hid_io;
 }
+
+void win_xser_instance_oper::invalidate()
+{
+	valid = false;
+}
+
+const hid_ifx& win_xser_instance_oper::get_hid_io() const {
+	CHECK_VALIDITY;
+	return *hid_io; 
+}
+
+const string& win_xser_instance_oper::get_serial_number() const { 
+	CHECK_VALIDITY;
+	return serial_number;
+}
+
+int win_xser_instance_oper::get_associated_com_number() const 
+{
+	CHECK_VALIDITY;
+	return com_number; 
+}
+
+const xser::physical_location_t& win_xser_instance_oper::get_physical_location() const {
+	CHECK_VALIDITY;
+	return physical_loc; 
+}
+
 
 

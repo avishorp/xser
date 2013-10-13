@@ -17,6 +17,8 @@ using namespace ihex_parser_ns;
 
 bool abstract_xser_instance_dfu::program_firmware(image_t& image, progress_callback_t report_target) const
 {
+	CHECK_VALIDITY;
+
 	// Make sure the image is of the correct size
 	if (image.size() != FIRMWARE_SIZE)
 		throw new runtime_error("Incorrect firmware image size");
@@ -81,6 +83,8 @@ bool abstract_xser_instance_dfu::program_firmware(image_t& image, progress_callb
 
 void abstract_xser_instance_dfu::reset_device() const
 {
+	CHECK_VALIDITY;
+
 	rx_packet_t packet;
 	memset((void*)&packet, 0, sizeof(rx_packet_t));
 

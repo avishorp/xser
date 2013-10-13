@@ -54,6 +54,9 @@
 
 namespace xser {
 
+// A type that holds physical location description                       
+typedef std::string physical_location_t;
+
 // An interface representing an xser device instance connected to the computer.
 // This interface is generalized to include devices both in DFU mode and in normal
 // operating mode
@@ -71,7 +74,11 @@ public:
 	// in any particular format, the only requirement is that two instances
 	// have the same PHYID if and only if they are connected to the same
 	// location (USB port) exactly.
-	virtual const uint32_t get_physical_id() const = 0;
+	virtual const physical_location_t& get_physical_location() const = 0;
+
+	// Returns true if the object is valid
+	virtual bool is_valid() const = 0;
+
 };
 
 typedef EXPORT std::vector <std::tr1::shared_ptr<const xser_instance_ifx>> xser_instances_t;

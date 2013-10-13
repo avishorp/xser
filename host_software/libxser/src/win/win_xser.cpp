@@ -108,8 +108,11 @@ void win_xser_instance_manager::rescan()
 			// Get the serial number
 			auto_ptr<string> serial = get_serial_number(device_info_set, &device_info_data);
 
+			// Get the physical location
+			string phy = get_location(device_info_set, &device_info_data);
+
 			// Create a new xser instance object
-			shared_ptr<xser_instance_ifx> xsi(new win_xser_instance_oper(*serial, device_info_set, &device_info_data));
+			shared_ptr<xser_instance_ifx> xsi(new win_xser_instance_oper(*serial, device_info_set, &device_info_data, phy));
 
 			// Add it to the list
 			xser_instances.push_back(xsi);
@@ -122,8 +125,11 @@ void win_xser_instance_manager::rescan()
 			// Get the serial number
 			auto_ptr<string> serial = get_serial_number(device_info_set, &device_info_data);
 
+			// Get the physical location
+			string phy = get_location(device_info_set, &device_info_data);
+
 			// Create a new DFU xser instance object
- 			shared_ptr<xser_instance_ifx> xsi(new win_xser_instance_dfu(*serial, device_info_set, &device_info_data));
+ 			shared_ptr<xser_instance_ifx> xsi(new win_xser_instance_dfu(*serial, device_info_set, &device_info_data, phy));
 
 			// Add it to the list
 			xser_instances.push_back(xsi);
@@ -156,4 +162,19 @@ std::auto_ptr<string> win_xser_instance_manager::get_serial_number(HDEVINFO devi
 	return ret;
 }
 
+string win_xser_instance_manager::get_location(HDEVINFO device_info_set, PSP_DEVINFO_DATA device_info_data)
+{
+	wchar_t physical_buf[1000];
+	DEVPROPTYPE type;
+	BOOLEAN r = SetupDiGetDeviceProperty(device_info_set, device_info_data, &DEVPKEY_Device_LocationPaths, &type, (PBYTE)physical_buf, 
+		sizeof(physical_buf), NULL, 0);
+
+	if (!r)
+		throw runtime_error("Could not get physical location");
+
+	wstring physical_loc_wstr(physical_buf);
+	string physical_loc_str(physical_loc_wstr.begin(), physical_loc_wstr.end());
+
+	return physical_loc_str;
+}
 

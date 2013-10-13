@@ -9,6 +9,9 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "xsertool", "..\xsertool\xse
 	EndProjectSection
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "xserserv", "..\xserserv\xserserv.vcxproj", "{5C066AE0-F295-4F92-B7F2-6A0EDA8CC9BC}"
+	ProjectSection(ProjectDependencies) = postProject
+		{6CA97B81-508D-4959-838F-2C83EE64DFFF} = {6CA97B81-508D-4959-838F-2C83EE64DFFF}
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

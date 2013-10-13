@@ -2,6 +2,10 @@
 #define __ABSTRACT_XSER_INSTANCE__
 
 #include <xser.h>
+#include <exception>
+
+#define CHECK_VALIDITY \
+	if (!is_valid()) throw new std::runtime_error("Invalid Object")
 
 namespace xser {
 
@@ -28,6 +32,7 @@ public:
 	// Determine whether the device is in DFU mode
 	virtual bool is_dfu_mode() const {
 		// This object represents a device in operational (non-DFU) mode
+		CHECK_VALIDITY;
 		return false;  
 	}
 
@@ -75,6 +80,7 @@ public:
 	// Determine whether the device is in DFU mode
 	virtual bool is_dfu_mode() const {
 		// This object represents a device in DFU mode
+		CHECK_VALIDITY;
 		return true;  
 	}
 
