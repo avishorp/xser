@@ -23,6 +23,7 @@ int main(char* argv[], int argc)
 	//xim.update_all_adaptors();
 
 	const xser_instances_t& xsers = xim.get_xser_instances();
+	vector<xser_instance_ifx*> xsers_list;
 	int count = xsers.size();
 
 	if (count == 0) {
@@ -38,7 +39,7 @@ int main(char* argv[], int argc)
 	int index = 1;
 
 	for(;iter != xsers.end(); iter++) {
-		tr1::shared_ptr<const xser_instance_ifx> inst = *iter;
+		xser_instance_ifx* inst = iter->second;
 		string version;
 		if (inst->is_dfu_mode())
 			version = "< DFU >";
@@ -46,6 +47,8 @@ int main(char* argv[], int argc)
 			version = "0";
 
 		cout << setw(5) << left << index++ << left << setw(15) << inst->get_serial_number() << version << endl;
+
+		xsers_list.push_back(inst);
 	}
 
 	bool program_all = false;
@@ -85,10 +88,10 @@ int main(char* argv[], int argc)
 	bool g = hex_file.good();
 	ihp.parse(hex_file);
 
-	shared_ptr<const xser_instance_ifx> selected = xsers[program_index-1];
+	xser_instance_ifx* selected = xsers_list[program_index-1];
 
 	if (selected->is_dfu_mode()) {
-		shared_ptr<const xser_instance_dfu_ifx> dfu = static_pointer_cast<const xser_instance_dfu_ifx>
+		const xser_instance_dfu_ifx* dfu = dynamic_cast<const xser_instance_dfu_ifx*>
 			(selected);
 	
 		image_t firmware_image(ihp.get_buffer(), ihp.get_buffer() + FIRMWARE_SIZE);
@@ -103,9 +106,9 @@ int main(char* argv[], int argc)
 	}
 	else {
 		// The selected xser is not in DFU mode
-	shared_ptr<const xser_instance_oper_ifx> x = static_pointer_cast<const xser_instance_oper_ifx>
+		xser_instance_oper_ifx* x = dynamic_cast<xser_instance_oper_ifx*>
 			(selected);
-	x->enter_dfu();
+		x->enter_dfu();
 	}
 
 

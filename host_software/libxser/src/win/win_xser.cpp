@@ -73,6 +73,7 @@ void win_xser_instance_manager::rescan()
 	device_info_data.cbSize = sizeof(SP_DEVINFO_DATA);
 	BOOLEAN r;
 	int working_device_count = 0;
+	xser_instance_ifx* xsi = NULL;
 
 	int hwid_oper_length = wcslen(HWID_OPER_STRING);
 	int hwid_dfu_length = wcslen(HWID_DFU_STRING);
@@ -112,10 +113,7 @@ void win_xser_instance_manager::rescan()
 			string phy = get_location(device_info_set, &device_info_data);
 
 			// Create a new xser instance object
-			shared_ptr<xser_instance_ifx> xsi(new win_xser_instance_oper(*serial, device_info_set, &device_info_data, phy));
-
-			// Add it to the list
-			xser_instances.push_back(xsi);
+			xsi = new win_xser_instance_oper(*serial, device_info_set, &device_info_data, phy);
 		}
 		else if (_wcsnicmp(HWID_DFU_STRING, hardware_id, hwid_dfu_length) == 0)
 		{                            
@@ -129,14 +127,38 @@ void win_xser_instance_manager::rescan()
 			string phy = get_location(device_info_set, &device_info_data);
 
 			// Create a new DFU xser instance object
- 			shared_ptr<xser_instance_ifx> xsi(new win_xser_instance_dfu(*serial, device_info_set, &device_info_data, phy));
-
-			// Add it to the list
-			xser_instances.push_back(xsi);
+ 			xsi = new win_xser_instance_dfu(*serial, device_info_set, &device_info_data, phy);
 		}
 		else
 			// Hardware ID mismatch
 			get_verbose_stream() << "No match" << endl;
+
+		if (xsi != NULL) {
+			// Check if the instance is not already on the list
+			xser_instances_iter_t it = xser_instances.find(xsi->get_physical_location());
+
+			if (it == xser_instances.end()) {
+				// No item in the physical location, insert it
+				xser_instances[xsi->get_physical_location()] = xsi;
+			}
+			else {
+				// There is already an item in the physical location
+				if ((it->second->get_serial_number() == xsi->get_serial_number()) &&
+					(it->second->is_dfu_mode() == xsi->is_dfu_mode())) {
+
+						// The newly created object is identical to the one already
+						// on the list. Discard the new object.
+						delete xsi;
+				}
+				else {
+					// The item on the list in the physical location is not identical to
+					// the new object. Discard the old one and replace it by the new one.
+					delete it->second;
+					xser_instances[xsi->get_physical_location()] = xsi;
+				}
+
+			}
+		}
 	}
 }
 

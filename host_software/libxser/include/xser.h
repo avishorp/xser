@@ -6,6 +6,7 @@
 #define __XSER_H__
 
 #include <string>
+#include <map>
 #include <vector>
 #include <memory>
 #include <iostream>
@@ -81,7 +82,7 @@ public:
 
 };
 
-typedef EXPORT std::vector <std::tr1::shared_ptr<const xser_instance_ifx>> xser_instances_t;
+typedef EXPORT std::map <physical_location_t, xser_instance_ifx*> xser_instances_t;
 typedef EXPORT xser_instances_t::const_iterator xser_instances_iter_t;
 
 
