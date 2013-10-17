@@ -39,7 +39,26 @@ void win_xser_instance_dfu::invalidate()
 	valid = false;
 }
 
-const hid_ifx& win_xser_instance_dfu::get_hid_io() const { 
+void win_xser_instance_dfu::connect()
+{
+	CHECK_VALIDITY;
+
+	win_hid_ifx& h = dynamic_cast<win_hid_ifx&>(get_hid_io());
+	h.open();
+	
+}
+
+void win_xser_instance_dfu::disconnect()
+{
+	win_hid_ifx& h = dynamic_cast<win_hid_ifx&>(get_hid_io());
+	h.close();
+
+	// Invalidate the object
+	valid = false;
+
+}
+
+hid_ifx& win_xser_instance_dfu::get_hid_io() const { 
 	CHECK_VALIDITY;
 	return *hid_io; 
 }
@@ -53,5 +72,12 @@ const physical_location_t& win_xser_instance_dfu::get_physical_location() const 
 	CHECK_VALIDITY;
 	return physical_loc;
 }
+
+void win_xser_instance_dfu::reset_device()
+{
+	abstract_xser_instance_dfu::reset_device();
+	disconnect();
+}
+
 
 

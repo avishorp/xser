@@ -24,7 +24,7 @@ class EXPORT abstract_xser_instance_oper: public xser::xser_instance_oper_ifx {
 protected:
 	// Returns an interface to an open HID device, ready to receive and transmit
 	// packets
-	virtual const hid_ifx& get_hid_io() const = 0;
+	virtual hid_ifx& get_hid_io() const = 0;
 
 	// From xser_instance_ifx
 	/////////////////////////
@@ -72,7 +72,7 @@ class EXPORT abstract_xser_instance_dfu: public xser::xser_instance_dfu_ifx {
 protected:
 	// Returns an interface to an open HID device, ready to receive and transmit
 	// packets
-	virtual const hid_ifx& get_hid_io() const = 0;
+	virtual hid_ifx& get_hid_io() const = 0;
 
 	// From xser_instance_ifx
 	/////////////////////////
@@ -95,7 +95,7 @@ public:
 	virtual bool program_firmware(image_t& image, progress_callback_t report_target = NULL) const;
 
 	// Reset the device
-	virtual void reset_device() const;
+	virtual void reset_device();
 
 private:
 	uint16_t calc_checksum(uint8_t* buf, unsigned int size) const;

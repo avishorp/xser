@@ -5,9 +5,11 @@
 #include "win_xser.h"
 #include "win_xser_instance_oper.h"
 #include "win_xser_instance_dfu.h"
+#include "win_exception.h"
 #include <memory>
 #include <string>
 #include <regex>
+#include <sstream>
 
 
 using namespace std;
@@ -46,9 +48,6 @@ const xser_instances_t& win_xser_instance_manager::get_xser_instances() const
 
 void win_xser_instance_manager::rescan()
 {
-	// First, clean the list of current instances
-	xser_instances.clear();
-
 	// Scan all the USB devices connected to the computer
 	HDEVINFO device_info_set = INVALID_HANDLE_VALUE;
 	device_info_set = SetupDiGetClassDevs(&GUID_DEVINTERFACE_USB_DEVICE, NULL, NULL, DIGCF_PRESENT | DIGCF_DEVICEINTERFACE);
@@ -140,6 +139,7 @@ void win_xser_instance_manager::rescan()
 			if (it == xser_instances.end()) {
 				// No item in the physical location, insert it
 				xser_instances[xsi->get_physical_location()] = xsi;
+				xsi->connect();
 			}
 			else {
 				// There is already an item in the physical location
@@ -155,6 +155,7 @@ void win_xser_instance_manager::rescan()
 					// the new object. Discard the old one and replace it by the new one.
 					delete it->second;
 					xser_instances[xsi->get_physical_location()] = xsi;
+					xsi->connect();
 				}
 
 			}
@@ -188,11 +189,13 @@ string win_xser_instance_manager::get_location(HDEVINFO device_info_set, PSP_DEV
 {
 	wchar_t physical_buf[1000];
 	DEVPROPTYPE type;
+	DWORD size_retrieved;
 	BOOLEAN r = SetupDiGetDeviceProperty(device_info_set, device_info_data, &DEVPKEY_Device_LocationPaths, &type, (PBYTE)physical_buf, 
-		sizeof(physical_buf), NULL, 0);
+		sizeof(physical_buf), &size_retrieved, 0);
 
-	if (!r)
-		throw runtime_error("Could not get physical location");
+	if (!r) {
+		WIN_API_THROW("Could not get physical location");
+	}
 
 	wstring physical_loc_wstr(physical_buf);
 	string physical_loc_str(physical_loc_wstr.begin(), physical_loc_wstr.end());

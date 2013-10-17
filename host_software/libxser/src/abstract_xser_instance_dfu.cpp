@@ -81,7 +81,7 @@ bool abstract_xser_instance_dfu::program_firmware(image_t& image, progress_callb
 
 }
 
-void abstract_xser_instance_dfu::reset_device() const
+void abstract_xser_instance_dfu::reset_device()
 {
 	CHECK_VALIDITY;
 
@@ -95,8 +95,6 @@ void abstract_xser_instance_dfu::reset_device() const
 	packet.reset_packet.unlock[3] = RESET_UNLOCK_3;
 
 	get_hid_io().send_packet((uint8_t*)&packet, 64);
-
-
 }
 
 uint16_t abstract_xser_instance_dfu::calc_checksum(uint8_t* buf, unsigned int size) const

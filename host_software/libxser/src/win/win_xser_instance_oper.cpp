@@ -168,12 +168,22 @@ win_xser_instance_oper::~win_xser_instance_oper()
 		delete hid_io;
 }
 
+void win_xser_instance_oper::enter_dfu()
+{
+	delete hid_io;
+	hid_io = NULL;
+	valid = false;
+
+	abstract_xser_instance_oper::enter_dfu();
+	disconnect();
+}
+
 void win_xser_instance_oper::invalidate()
 {
 	valid = false;
 }
 
-const hid_ifx& win_xser_instance_oper::get_hid_io() const {
+hid_ifx& win_xser_instance_oper::get_hid_io() const {
 	CHECK_VALIDITY;
 	return *hid_io; 
 }
@@ -193,6 +203,23 @@ const xser::physical_location_t& win_xser_instance_oper::get_physical_location()
 	CHECK_VALIDITY;
 	return physical_loc; 
 }
+
+void win_xser_instance_oper::connect()
+{
+	CHECK_VALIDITY;
+
+	win_hid_ifx& h = dynamic_cast<win_hid_ifx&>(get_hid_io());
+	h.open();
+}
+
+
+void win_xser_instance_oper::disconnect()
+{
+	valid = false;
+	win_hid_ifx& h = dynamic_cast<win_hid_ifx&>(get_hid_io());
+	h.close();
+}
+
 
 
 

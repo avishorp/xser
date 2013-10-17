@@ -80,6 +80,9 @@ public:
 	// Returns true if the object is valid
 	virtual bool is_valid() const = 0;
 
+	// Opens handles, devices etc. associated with the instace
+	virtual void connect() = 0;
+
 };
 
 typedef EXPORT std::map <physical_location_t, xser_instance_ifx*> xser_instances_t;
@@ -115,7 +118,7 @@ public:
 	virtual bool program_firmware(image_t& image, progress_callback_t report_target = NULL) const = 0;
 
 	// Reset the device
-	virtual void reset_device() const = 0;
+	virtual void reset_device() = 0;
 };
 
 class EXPORT xser_instance_manager_ifx {

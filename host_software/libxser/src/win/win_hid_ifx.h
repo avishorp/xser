@@ -18,7 +18,12 @@ public:
 
 	virtual void set_timeout(int to) const;
 
+	void open();
+
+	void close();
+
 private:
 	HANDLE hid_handle;
+	std::wstring instance_path;
 
 };

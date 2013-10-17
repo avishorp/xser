@@ -47,6 +47,9 @@ void abstract_xser_instance_oper::enter_dfu() const {
 	h.send_packet((uint8_t*)&req, sizeof(req));
 
 	// No response to wait for
+
+	// Invalidate the object
+	//invalidate();
 }
 
 

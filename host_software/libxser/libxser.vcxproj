@@ -82,6 +82,7 @@
     <ClInclude Include="page_iterator_ifx.h" />
     <ClInclude Include="src/win/stdafx.h" />
     <ClInclude Include="src/win/targetver.h" />
+    <ClInclude Include="src\win\win_exception.h" />
     <ClInclude Include="src\win\win_hid_ifx.h" />
     <ClInclude Include="src\win\win_xser.h" />
     <ClInclude Include="src\win\win_xser_instance_dfu.h" />

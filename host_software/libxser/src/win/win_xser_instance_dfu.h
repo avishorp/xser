@@ -11,7 +11,7 @@ public:
 
 
 protected:
-	virtual const hid_ifx& get_hid_io() const;
+	virtual hid_ifx& get_hid_io() const;
 
 public:
 	virtual const std::string& get_serial_number() const;
@@ -20,7 +20,14 @@ public:
 
 	virtual bool is_valid() const { return valid; }
 
+	virtual void reset_device();
+
+	virtual void connect();
+
 protected:
+
+	void disconnect();
+
 	void invalidate();
 
 

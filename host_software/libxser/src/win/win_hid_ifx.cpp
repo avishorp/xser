@@ -1,23 +1,40 @@
 #include "stdafx.h"
 #include "win_hid_ifx.h"
+#include <sstream>
 
 using namespace std;
 using namespace xser;
 
-win_hid_ifx::win_hid_ifx(wchar_t* instance_path)
+win_hid_ifx::win_hid_ifx(wchar_t* instance_path_)
 {
-	// Open the HID interface for read and write
-	hid_handle = CreateFile(instance_path, (GENERIC_WRITE|GENERIC_READ), FILE_SHARE_READ, NULL, OPEN_EXISTING, 0, NULL);
-
-	if (hid_handle == INVALID_HANDLE_VALUE) {
-		throw std::runtime_error("Failed opening the HID interface");
-	}
+	hid_handle = INVALID_HANDLE_VALUE;
+	instance_path = instance_path_;
 }
 
 win_hid_ifx::~win_hid_ifx()
 {
-	if (hid_handle != INVALID_HANDLE_VALUE)
+	close();
+}
+
+void win_hid_ifx::open()
+{
+	// Open the HID interface for read and write
+	hid_handle = CreateFile(instance_path.c_str(), (GENERIC_WRITE|GENERIC_READ), FILE_SHARE_READ, NULL, OPEN_EXISTING, 0, NULL);
+
+	if (hid_handle == INVALID_HANDLE_VALUE) {
+		stringstream err;
+		err << "Failed opening the HID interface (" << GetLastError() << ")";
+		throw std::runtime_error(err.str());
+	}
+
+}
+
+void win_hid_ifx::close()
+{
+	if (hid_handle != INVALID_HANDLE_VALUE) {
 		CloseHandle(hid_handle);
+		hid_handle = INVALID_HANDLE_VALUE;
+	}
 }
 
 void win_hid_ifx::send_packet(uint8_t* packet, int len) const

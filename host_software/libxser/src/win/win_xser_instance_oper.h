@@ -12,7 +12,7 @@ public:
 	void process_child(HDEVINFO world_device_info_set, LPCWSTR child_id);
 
 protected:
-	virtual const hid_ifx& get_hid_io() const;
+	virtual hid_ifx& get_hid_io() const;
 
 public:
 	virtual const std::string& get_serial_number() const;
@@ -23,7 +23,14 @@ public:
 
 	virtual bool is_valid() const { return valid; }
 
+	virtual void enter_dfu();
+
+	virtual void connect();
+
+
 protected:
+	void disconnect();
+
 	void invalidate();
 
 

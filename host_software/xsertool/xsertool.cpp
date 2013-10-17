@@ -13,6 +13,10 @@ using namespace tr1;
 // Default firmware file
 const char default_firmware[] = "..\\..\\firmware\\xser\\dist\\default\\production\\xser.production.hex";
 
+// Forwards
+xser_instance_dfu_ifx* switch_to_dfu(xser_instance_oper_ifx* inst);
+void do_programming(xser_instance_ifx* inst, image_t& firmware_image);
+
 
 int main(char* argv[], int argc)
 {
@@ -27,8 +31,8 @@ int main(char* argv[], int argc)
 	int count = xsers.size();
 
 	if (count == 0) {
-		cout << "No XSer adaptors found" << endl;
-		exit(0);
+		cerr << "No XSer adaptors found" << endl;
+		exit(1);
 	}
 
 	cout << "Found " << count << " xser adaptors" << endl;
@@ -85,31 +89,83 @@ int main(char* argv[], int argc)
 	ihex_parser ihp(FIRMWARE_ADDR_START, FIRMWARE_ADDR_END);
 	ifstream hex_file;
 	hex_file.open(firmware_file, ios::in);
-	bool g = hex_file.good();
+	if (!hex_file.good()) {
+		cerr << "Cannot open hex file: " << strerror( errno ) << endl;
+		exit(1);
+	}
 	ihp.parse(hex_file);
+	image_t firmware_image(ihp.get_buffer(), ihp.get_buffer() + FIRMWARE_SIZE);
+
 
 	xser_instance_ifx* selected = xsers_list[program_index-1];
-
-	if (selected->is_dfu_mode()) {
-		const xser_instance_dfu_ifx* dfu = dynamic_cast<const xser_instance_dfu_ifx*>
-			(selected);
-	
-		image_t firmware_image(ihp.get_buffer(), ihp.get_buffer() + FIRMWARE_SIZE);
-
-		if (!(dfu->program_firmware(firmware_image, [] (int progress) { cout << "Programming " << progress << "%\r" << flush; }))) {
-			cout << "\nProgramming failed !!!" << endl;
-		}
-		else {
-			cout << "\nProgramming succeedded, resetting device" << endl;
-			dfu->reset_device();
-		}
-	}
-	else {
-		// The selected xser is not in DFU mode
-		xser_instance_oper_ifx* x = dynamic_cast<xser_instance_oper_ifx*>
-			(selected);
-		x->enter_dfu();
-	}
+	do_programming(selected, firmware_image);
 
 
 }
+
+xser_instance_dfu_ifx* switch_to_dfu(xser_instance_oper_ifx* inst)
+{
+	cout << "Device " << inst->get_serial_number() << " is not in DFU mode, switching" << endl;
+	// Get the instance manager
+	xser_instance_manager_ifx& inst_manager = get_xser_instance_manager();
+
+	// Get the physical location of the instance
+	physical_location_t loc = inst->get_physical_location();
+
+	// Give the command to switch to DFU mode
+	inst->enter_dfu();
+
+	// Wait until the adapter is switched
+	for(int iter = 20; iter >= 0; iter--) {
+		cout << "Wait for the switch to complete ... " << endl;
+		_sleep(1000);
+
+		try {
+			inst_manager.rescan();
+			const xser_instances_t& xser_instances = inst_manager.get_xser_instances();
+
+			xser_instances_iter_t t = xser_instances.find(loc);
+			if (t != xser_instances.end()) {
+				if (t->second->is_dfu_mode())
+					return dynamic_cast<xser_instance_dfu_ifx*>(t->second);
+			}
+		}
+		catch (runtime_error& e) {
+			// During transitions, errors may occur, we will ignore then
+		}
+	}
+
+	// Something went wrong ...
+	return NULL;
+}
+
+void do_programming(xser_instance_ifx* inst, image_t& firmware_image)
+{
+	xser_instance_dfu_ifx* dfu_inst;
+
+	// Check if the instance is in DFU mode, and switch it
+	// to that mode if not
+	if (inst->is_dfu_mode()) {
+		// Already in DFU mode
+		dfu_inst = dynamic_cast<xser_instance_dfu_ifx*>(inst);
+	}
+	else {
+		// Not in DFU mode
+		dfu_inst = switch_to_dfu(dynamic_cast<xser_instance_oper_ifx*>(inst));
+		if (dfu_inst == NULL) {
+			cerr << "Failed switching the device into DFU mode" << endl;
+			exit(1);
+		}
+	}
+
+	if (!(dfu_inst->program_firmware(firmware_image, [] (int progress) { cout << "Programming " << progress << "%\r" << flush; }))) {
+			cout << "\nProgramming failed !!!" << endl;
+	}
+	else {
+		cout << "\nProgramming succeedded, resetting device" << endl;
+		dfu_inst->reset_device();
+	}
+
+}
+
+
