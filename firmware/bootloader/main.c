@@ -102,6 +102,9 @@ extern const byte dfu_magic_code[4];
 static void InitializeSystem(void);
 void InitSerialNumber();
 void USBTasks(void);
+
+unsigned char is_force_dfu();
+
 #if !defined(__18F14K50) && !defined(__18F13K50) && !defined(__18LF14K50) && !defined(__18LF13K50)
     void BlinkUSBStatus(void);
 #else
@@ -142,22 +145,24 @@ void interrupt_at_low_vector(void)
 void main(void)
 {
     unsigned char t;
-    unsigned char magic_flag;
+    unsigned char enter_dfu;
 
     //Need to make sure RB4 can be used as a digital input pin.
 
     // Check the magic code in the EEPROM
-    magic_flag = 1;
+    enter_dfu = 0;
     EECON1 = 0b00000000; // EEPROM read
     for(t = 0; t < 4; t++) {
         EEADR = t;
         EECON1bits.RD = 1;
         if (EEDATA != dfu_magic_code[t])
-            magic_flag = 0;
+            enter_dfu = 1;
     }
 
+    enter_dfu |= is_force_dfu();
+
     //Check Bootload Mode Entry Condition
-	if(magic_flag == 1)	//This example uses the sw2 I/O pin to determine if the device should enter the bootloader, or the main application code
+	if(enter_dfu != 1)	//This example uses the sw2 I/O pin to determine if the device should enter the bootloader, or the main application code
 	{
     	//Restore default "reset" value of registers we may have modified temporarily.
 
@@ -363,6 +368,32 @@ void BlinkUSBStatus(void)
 
 }//end BlinkUSBStatus
 #endif
+
+// Check if DFU mode is forced due to long (> 3s) button
+// push during power-up
+unsigned char is_force_dfu()
+{
+    unsigned int k;
+
+    // Set up week pullup on RE3
+    WPUB = 0; // No pull-ups on port B
+    INTCON2bits.RBPU = 0;
+
+    // Small delay to allow voltage to settle down
+    for(k=0; k < 200; k++);
+
+    // Check if the button is pressed
+    k = 0;
+    while(PORTEbits.RE3 == 0) {
+        k++;
+        if (k > 35000)
+            // Button held enough, return true
+            return 1;
+    }
+
+    return 0;
+}
+
 
 
 
