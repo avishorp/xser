@@ -262,6 +262,9 @@ static void InitializeSystem(void)
     // Initialize Oscillator
     OSCCON = 0b01110000;
 
+    // Enable active tuning via USB clock
+    ACTCON = 0b10010000;
+
     // Initialize I/O
     IO_Init();
 

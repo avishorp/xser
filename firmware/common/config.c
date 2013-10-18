@@ -23,8 +23,9 @@
 // Disable BOR
 #pragma config BOREN = OFF
 
-// Disable watchdog (TODO: Enable it)
-#pragma config WDTEN = OFF
+// Disable watchdog
+#pragma config WDTEN = NOSLP
+#pragma config WDTPS = 2048
 
 // Disable the A/D on PORTB
 #pragma config PBADEN = OFF
@@ -37,3 +38,6 @@
 
 // Disable extended instruction set
 #pragma config XINST = ON
+
+// Protect the configuration bits
+#pragma config WRTC = ON

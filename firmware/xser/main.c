@@ -11,8 +11,7 @@
 #include "HardwareProfile.h"
 #include "ui.h"
 #include "usart.h"
-#include "xser_hid.h"
-#include "dfu_magic.h"
+#include "hid_protocol.h"
 
 
 #pragma udata
@@ -30,20 +29,9 @@ USB_HANDLE HID_OutHandle = 0;    //USB handle.  Must be initialized to 0 at star
 USB_HANDLE HID_InHandle = 0;     //USB handle.  Must be initialized to 0 at startup.
 
 #pragma udata USB_VARS
-unsigned char HID_OutDataBuffer[64]; // Host-to-xser
+request_packet_t HID_OutDataBuffer; // Host-to-xser
 unsigned char HID_InDataBuffer[64];// TX_DATA_BUFFER_ADDRESS; // xser-to-Host
 #pragma udata
-
-// HID Commands
-///////////////
-// These command codes are transmitted in the first byte
-// of a HID packet
-
-
-#define XSER_HID_CMD_GET_FW_VER    1
-#define XSER_HID_CMD_SET_NUMBER    2
-#define XSER_HID_CMD_ENTER_DFU     3
-
 
 
 // Prototypes
@@ -60,12 +48,11 @@ void UserInit(void);
 void InitializeUSART(void);
 void putcUSART(char c);
 unsigned char getcUSART ();
+void commit_write(unsigned char key);
+void reset_device();
 
-
-// TODO: Move these to a separate h file
-#define REMAPPED_RESET_VECTOR_ADDRESS		0x00
-#define REMAPPED_HIGH_INTERRUPT_VECTOR_ADDRESS	0x08
-#define REMAPPED_LOW_INTERRUPT_VECTOR_ADDRESS	0x18
+// The value required to unlock commit_write
+#define COMMIT_KEY          0xB5
 	
 #pragma code
 	
@@ -76,6 +63,7 @@ void main(void)
     long k;
     unsigned char events = 0;
 
+    ClrWdt();
     SystemInit();
 
     // Clear HID in and out handles
@@ -88,6 +76,8 @@ void main(void)
 
     while(1)
     {
+        ClrWdt();
+        
         events = 0;
         
 	// Check bus status and service USB interrupts.
@@ -117,6 +107,9 @@ void SystemInit()
 {
     // Set the oscillator to 16MHz
     OSCCON = 0b01110000;
+
+    // Enable active tuning via USB clock
+    ACTCON = 0b10010000;
 
     // Initialize the I/O pins
     IO_Init();
@@ -365,13 +358,14 @@ void HID_EP_Init()
 unsigned char HID_Service()
 {
     unsigned char event = 0;
+    unsigned char i;
 
     // Handle HID packets
     if(!HIDRxHandleBusy(HID_OutHandle))
     {
 
         //memset(HID_InDataBuffer, 0, sizeof(HID_InDataBuffer));
-        switch (HID_OutDataBuffer[0]) {
+        switch (HID_OutDataBuffer.generic_packet.command) {
 
         case XSER_HID_GET_VERSION:
             HID_InDataBuffer[0] = 22;
@@ -380,12 +374,32 @@ unsigned char HID_Service()
 
         case XSER_HID_SET_NUMBER:
             // Display the LSB digit
-            UI_SetPortNumber(HID_OutDataBuffer[1]);
+            UI_SetPortNumber(HID_OutDataBuffer.set_com_packet.com_number);
             event = EVENT_HIDCMD;
 
             break;
 
         case XSER_HID_ENTER_DFU:
+            // Verify correct unlock code
+            if ((HID_OutDataBuffer.enter_dfu_packet.unlock[0] != DFU_UNLOCK_0) ||
+                (HID_OutDataBuffer.enter_dfu_packet.unlock[1] != DFU_UNLOCK_1) ||
+                (HID_OutDataBuffer.enter_dfu_packet.unlock[2] != DFU_UNLOCK_2) ||
+                (HID_OutDataBuffer.enter_dfu_packet.unlock[3] != DFU_UNLOCK_3))
+                break;
+
+            // Clear the EEPROM memory area designating
+            // a valid program (will cause bootloader
+            // to kick in on next reset)
+            EECON1 = 0b00000100;
+            for(i = 0; i < 4; i++) {
+                EEADR = i;
+                EEDATA = 0;
+                EECON1bits.WREN = 1;
+                commit_write(COMMIT_KEY);
+            }
+
+            // Reset the device
+            reset_device();
             break;
         }
 
@@ -877,6 +891,66 @@ BOOL USER_USB_CALLBACK_EVENT_HANDLER(int event, void *pdata, WORD size)
             break;
     }      
     return TRUE; 
+}
+
+void commit_write(unsigned char key)
+{
+	INTCONbits.GIE = 0;		//Make certain interrupts disabled for unlock process.
+
+    //Check to make sure the caller really was trying to call this function.
+    //If they were, they should always pass us the CORRECT_UNLOCK_KEY.
+    if(key != COMMIT_KEY)
+    {
+        //Warning!  Errant code execution detected.  Somehow this
+        //commit_write() function got called by someone that wasn't trying
+        //to actually perform an NVM erase or write.  This could happen due to
+        //microcontroller overclocking (or undervolting for an otherwise allowed
+        //CPU frequency), or due to buggy code (ex: incorrect use of function
+        //pointers, etc.).  In either case, we should execute some fail safe
+        //code here to prevent corruption of the NVM contents.
+        reset_device();
+    }
+
+	_asm
+	//Now unlock sequence to set WR (make sure interrupts are disabled before executing this)
+	MOVLW 0x55
+	MOVWF EECON2, 0
+	MOVLW 0xAA
+	MOVWF EECON2, 0
+	BSF EECON1, 1, 0		//Performs write
+	_endasm
+	while(EECON1bits.WR);	//Wait until complete (relevant when programming EEPROM, not important when programming flash since processor stalls during flash program)
+	EECON1bits.WREN = 0;  	//Good practice now to clear the WREN bit, as further protection against any accidental activation of self write/erase operations.
+}
+
+
+
+
+void reset_device()
+{
+    unsigned char i;
+
+    UCONbits.SUSPND = 0;		//Disable USB module
+    UCON = 0x00;				//Disable USB module
+    //And wait awhile for the USB cable capacitance to discharge down to disconnected (SE0) state.
+    //Otherwise host might not realize we disconnected/reconnected when we do the reset.
+    //A basic for() loop decrementing a 16 bit number would be simpler, but seems to take more code space for
+    //a given delay.  So do this instead:
+    for(i = 0; i < 0xFF; i++)
+    {
+	WREG = 0xFF;
+	while(WREG)
+	{
+            WREG--;
+	    _asm
+	      bra	0	//Equivalent to bra $+2, which takes half as much code as 2 nop instructions
+  	      bra	0	//Equivalent to bra $+2, which takes half as much code as 2 nop instructions
+	    _endasm
+	}
+    }
+    Reset();
+    Nop();
+    Nop();
 }
 
 /** EOF main.c *************************************************/
