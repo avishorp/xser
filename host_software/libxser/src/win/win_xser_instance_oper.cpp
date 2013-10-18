@@ -4,6 +4,8 @@
 #include "../abstract_xser_instance.h"
 #include "win_xser_instance_oper.h"
 #include "win_hid_ifx.h"
+#include "win_exception.h"
+#include <sstream>
 
 #include <regex>
 
@@ -28,8 +30,9 @@ win_xser_instance_oper::win_xser_instance_oper(string& serial, HDEVINFO dev_info
 	HDEVINFO world_device_info_set = INVALID_HANDLE_VALUE;
 	world_device_info_set = SetupDiGetClassDevs(NULL, NULL, NULL, DIGCF_ALLCLASSES|DIGCF_PRESENT);
 
-	if (world_device_info_set == INVALID_HANDLE_VALUE) 
-		throw runtime_error("Could not get all device information set");
+	if (world_device_info_set == INVALID_HANDLE_VALUE)  {
+		WIN_API_THROW("Could not get all device information set");
+	}
 
 	// Get the physical path and generate a physical ID
 	uint8_t physical;

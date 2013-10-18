@@ -1,9 +1,11 @@
 #include "stdafx.h"
 #include <xser.h>
 #include <string>
+#include <sstream>
 #include <stdint.h>
 #include "win_xser_instance_dfu.h"
 #include "win_hid_ifx.h"
+#include "win_exception.h"
 
 using namespace std;
 using namespace xser;
@@ -21,8 +23,9 @@ win_xser_instance_dfu::win_xser_instance_dfu(std::string& serial, HDEVINFO dev_i
 	DWORD children_type;
 	WCHAR children[1000];
 	BOOLEAN r = SetupDiGetDeviceProperty(dev_info_set, dev_info_data, &DEVPKEY_Device_Children, &children_type, (PBYTE)children, 1000, NULL, 0);
-	if (!r)
-		throw runtime_error("Cannot obtain children");
+	if (!r) {
+		WIN_API_THROW("Cannot obtain children");
+	}
 
 	hid_io = win_hid_ifx::from_child(children);
 

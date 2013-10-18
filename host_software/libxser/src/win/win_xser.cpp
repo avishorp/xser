@@ -143,8 +143,9 @@ void win_xser_instance_manager::rescan()
 			}
 			else {
 				// There is already an item in the physical location
-				if ((it->second->get_serial_number() == xsi->get_serial_number()) &&
-					(it->second->is_dfu_mode() == xsi->is_dfu_mode())) {
+				if (it->second->is_valid() &&
+					((it->second->get_serial_number() == xsi->get_serial_number()) &&
+					(it->second->is_dfu_mode() == xsi->is_dfu_mode()))) {
 
 						// The newly created object is identical to the one already
 						// on the list. Discard the new object.
@@ -156,7 +157,7 @@ void win_xser_instance_manager::rescan()
 					delete it->second;
 					xser_instances[xsi->get_physical_location()] = xsi;
 					xsi->connect();
-				}
+				}      
 
 			}
 		}
