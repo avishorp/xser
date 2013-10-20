@@ -96,9 +96,14 @@ int main(char* argv[], int argc)
 	ihp.parse(hex_file);
 	image_t firmware_image(ihp.get_buffer(), ihp.get_buffer() + FIRMWARE_SIZE);
 
-
-	xser_instance_ifx* selected = xsers_list[program_index-1];
-	do_programming(selected, firmware_image);
+	if (program_all) {
+		for (xser_instances_iter_t it = xsers.begin(); it != xsers.end(); it++)
+			do_programming(it->second, firmware_image);
+	}
+	else {
+		xser_instance_ifx* selected = xsers_list[program_index-1];
+		do_programming(selected, firmware_image);
+	}
 
 
 }
