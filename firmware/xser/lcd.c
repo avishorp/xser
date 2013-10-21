@@ -84,13 +84,6 @@ void LCD_Interrupt_Handler()
     }
 }
 
-#pragma code high_vector=0x08
-void interrupt_at_low_vector(void)
-{
-  _asm GOTO LCD_Interrupt_Handler _endasm
-}
-
-
 void LCD_Init()
 {
 
