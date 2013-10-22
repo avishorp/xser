@@ -6,6 +6,7 @@
 #include "win_hid_ifx.h"
 #include "win_exception.h"
 #include <sstream>
+#include <boost/log/trivial.hpp>
 
 #include <regex>
 
@@ -72,6 +73,8 @@ win_xser_instance_oper::win_xser_instance_oper(string& serial, HDEVINFO dev_info
 void win_xser_instance_oper::process_child(HDEVINFO world_device_info_set, LPCWSTR child_id)
 {
 	// Get the device according to its instance ID
+	BOOST_LOG_TRIVIAL(debug) << "Processing child: " << child_id;
+
 	BOOLEAN r;
 	SP_DEVINFO_DATA device_info_data;
 	memset(&device_info_data, 0x0, sizeof(device_info_data));
@@ -88,6 +91,8 @@ void win_xser_instance_oper::process_child(HDEVINFO world_device_info_set, LPCWS
 
 	if (!r)
 		throw runtime_error("Could not obtain the device class");
+
+	BOOST_LOG_TRIVIAL(debug) << "Class name: " << class_name;
 
 	if (wcscmp(class_name, L"HIDClass") == 0) {
 		// Process the HID side
@@ -153,6 +158,8 @@ void win_xser_instance_oper::process_child(HDEVINFO world_device_info_set, LPCWS
 		r = SetupDiGetDeviceProperty(world_device_info_set, &device_info_data, &DEVPKEY_Device_FriendlyName, &desc_type, (PBYTE)desc, 300, NULL, 0);
 		if (!r)
 			throw runtime_error("Could not obtain port description");
+
+		BOOST_LOG_TRIVIAL(debug) << "Port description: " << desc;
 
 		std::tr1::wcmatch mr;
 		bool match_result = std::tr1::regex_search<WCHAR>(desc, mr, regex_com);

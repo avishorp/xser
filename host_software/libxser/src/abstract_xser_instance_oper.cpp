@@ -4,6 +4,8 @@
 #include <string>
 #include <stdint.h>
 #include "../../../firmware/xser/hid_protocol.h"
+#include <boost/log/trivial.hpp>
+
 
 using namespace std;
 using namespace xser;
@@ -12,6 +14,9 @@ using namespace xser;
 void abstract_xser_instance_oper::set_com_display(int number) const {
 
 	CHECK_VALIDITY;
+
+	BOOST_LOG_TRIVIAL(debug) << "set_com_display started";
+
 	
 	const hid_ifx& h = get_hid_io();
 
@@ -27,10 +32,16 @@ void abstract_xser_instance_oper::set_com_display(int number) const {
 
 void abstract_xser_instance_oper::get_firmware_version(int& major, int& minor) const {
 	CHECK_VALIDITY;
+
+	BOOST_LOG_TRIVIAL(debug) << "get_firmware_version started";
+
 }
 
 void abstract_xser_instance_oper::enter_dfu() const {
 	CHECK_VALIDITY;
+
+	BOOST_LOG_TRIVIAL(debug) << "enter_dfu started";
+
 
 	// Create a request buffer
 	packet_enter_dfu_t req;

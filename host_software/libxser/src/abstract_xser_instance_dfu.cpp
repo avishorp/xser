@@ -8,6 +8,7 @@
 #include "../../../firmware/bootloader/bootloader_protocol.h"
 #include <iterator>
 #include "ihex_parser.h"
+#include <boost/log/trivial.hpp>
 
 using namespace std;
 using namespace xser;
@@ -18,6 +19,8 @@ using namespace ihex_parser_ns;
 bool abstract_xser_instance_dfu::program_firmware(image_t& image, progress_callback_t report_target) const
 {
 	CHECK_VALIDITY;
+
+	BOOST_LOG_TRIVIAL(debug) << "program_firmware started";
 
 	// Make sure the image is of the correct size
 	if (image.size() != FIRMWARE_SIZE)
@@ -33,6 +36,7 @@ bool abstract_xser_instance_dfu::program_firmware(image_t& image, progress_callb
 	memset((void*)&packet, 0, sizeof(rx_packet_t));
 
 	int num_pages = FIRMWARE_SIZE / PROG_PAGE_SIZE;
+	BOOST_LOG_TRIVIAL(debug) << "Programming " << num_pages << " pages";
 	
 	for(int page = 0; page < num_pages; page++) {
 
@@ -46,7 +50,7 @@ bool abstract_xser_instance_dfu::program_firmware(image_t& image, progress_callb
 
 		get_hid_io().send_packet((uint8_t*)&packet, 64);
 		if (!wait_for_response_packet())
-			return false;
+			throw runtime_error("Response packet not received");
 
 		// EXEC Packet
 		packet.exec_packet.command = PROG_CMD_EXEC;
@@ -58,20 +62,21 @@ bool abstract_xser_instance_dfu::program_firmware(image_t& image, progress_callb
 
 		get_hid_io().send_packet((uint8_t*)&packet, 64);
 		if (!wait_for_response_packet())
-			return false;
+			throw runtime_error("Response packet not received");
 
 		if (report_target != NULL)
 			report_target(page * 95 / num_pages);
 	}
 
 	/////// FINALIZE
+	BOOST_LOG_TRIVIAL(debug) << "Programming done, finalizing";
 	packet.finalize_packet.command = PROG_CMD_FINALIZE;
 	packet.finalize_packet.checksum = calc_checksum((uint8_t*)image.data(), image.size());
 	packet.generic_packet.command = PROG_CMD_FINALIZE;
 	get_hid_io().send_packet((uint8_t*)&packet, 64);
 
 	if (!wait_for_response_packet())
-		return false;
+		throw runtime_error("Response packet not received");
 
 	// Programming succeeded
 	if (report_target != NULL)
@@ -85,6 +90,8 @@ void abstract_xser_instance_dfu::reset_device()
 {
 	CHECK_VALIDITY;
 
+	BOOST_LOG_TRIVIAL(debug) << "reset_device started";
+
 	rx_packet_t packet;
 	memset((void*)&packet, 0, sizeof(rx_packet_t));
 
@@ -95,6 +102,8 @@ void abstract_xser_instance_dfu::reset_device()
 	packet.reset_packet.unlock[3] = RESET_UNLOCK_3;
 
 	get_hid_io().send_packet((uint8_t*)&packet, 64);
+
+	// No response to expect ...
 }
 
 uint16_t abstract_xser_instance_dfu::calc_checksum(uint8_t* buf, unsigned int size) const

@@ -2,6 +2,9 @@
 #include <xser.h>
 #include <exception>
 #include <stdlib.h>
+#include <boost/log/core.hpp>
+#include <boost/log/trivial.hpp>
+#include <boost/log/expressions.hpp>
 
 using namespace xser;
 using namespace std;
@@ -37,18 +40,6 @@ VOID SvcReportDebug( LPTSTR, DWORD );
 #define LOG_WARNING(message) SvcReportWarning(message, __LINE__)
 #define LOG_INFO(message)    SvcReportInfo(message, __LINE__)
 #define LOG_DEBUG(message)   SvcReportDebug(message, __LINE__)
-
-template<typename Ch, typename Traits = std::char_traits<Ch> >
-struct basic_nullbuf : std::basic_streambuf<Ch, Traits> {
-     typedef std::basic_streambuf<Ch, Traits> base_type;
-     typedef typename base_type::int_type int_type;
-     typedef typename base_type::traits_type traits_type;
-
-     virtual int_type overflow(int_type c) {
-         return traits_type::not_eof(c);
-     }
-};
-
 
 //
 // Purpose: 
@@ -109,6 +100,8 @@ VOID SvcInstall()
     SC_HANDLE schSCManager;
     SC_HANDLE schService;
     TCHAR szPath[MAX_PATH];
+
+	// logging::add_file_log("sample.log");
 
     if( !GetModuleFileName( NULL, szPath, MAX_PATH ) )
     {
@@ -299,10 +292,6 @@ VOID SvcInit( DWORD dwArgc, LPTSTR *lpszArgv)
 	LOG_DEBUG(TEXT("Device Notification Registered"));
 
 	gInstMan = &get_xser_instance_manager();
-	basic_nullbuf<char> nobuf;
-	std::ostream cnull(&nobuf);
-	gInstMan->set_verbose_stream(cnull);
-
 
     // Report running status when initialization is complete.
     ReportSvcStatus( SERVICE_RUNNING, NO_ERROR, 0 );

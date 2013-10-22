@@ -127,8 +127,6 @@ public:
 
 	virtual void rescan() = 0;
 
-	virtual void set_verbose_stream(std::ostream&) = 0;
-
 	virtual void update_all_adaptors() = 0;
 };
 

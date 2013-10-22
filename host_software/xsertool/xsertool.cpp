@@ -4,11 +4,17 @@
 #include <stdlib.h>
 #include <fstream>
 #include <functional>
+#include <boost/log/core.hpp>
+#include <boost/log/trivial.hpp>
+#include <boost/log/expressions.hpp>
 
 using namespace xser;
 using namespace std;
 using namespace ihex_parser_ns;
 using namespace tr1;
+using namespace boost::log;
+
+namespace logging = boost::log;
 
 // Default firmware file
 const char default_firmware[] = "..\\..\\firmware\\xser\\dist\\default\\production\\xser.production.hex";
@@ -20,9 +26,16 @@ void do_programming(xser_instance_ifx* inst, image_t& firmware_image);
 
 int main(char* argv[], int argc)
 {
+
+	logging::core::get()->set_filter
+    (
+        logging::trivial::severity >= logging::trivial::warning
+    );
+
+	BOOST_LOG_TRIVIAL(debug) << "This is a test!";
+
 	xser_instance_manager_ifx& xim = get_xser_instance_manager();
 
-	xim.set_verbose_stream(cout);
 	xim.rescan();
 	//xim.update_all_adaptors();
 
@@ -135,7 +148,7 @@ xser_instance_dfu_ifx* switch_to_dfu(xser_instance_oper_ifx* inst)
 					return dynamic_cast<xser_instance_dfu_ifx*>(t->second);
 			}
 		}
-		catch (runtime_error& e) {
+		catch (std::runtime_error& e) {
 			// During transitions, errors may occur, we will ignore then
 		}
 	}

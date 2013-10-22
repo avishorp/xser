@@ -10,6 +10,7 @@
 #include <string>
 #include <regex>
 #include <sstream>
+#include <boost/log/trivial.hpp>
 
 
 using namespace std;
@@ -48,6 +49,8 @@ const xser_instances_t& win_xser_instance_manager::get_xser_instances() const
 
 void win_xser_instance_manager::rescan()
 {
+	BOOST_LOG_TRIVIAL(debug) << "Starting rescan";
+
 	// Scan all the USB devices connected to the computer
 	HDEVINFO device_info_set = INVALID_HANDLE_VALUE;
 	device_info_set = SetupDiGetClassDevs(&GUID_DEVINTERFACE_USB_DEVICE, NULL, NULL, DIGCF_PRESENT | DIGCF_DEVICEINTERFACE);
@@ -77,7 +80,7 @@ void win_xser_instance_manager::rescan()
 	int hwid_oper_length = wcslen(HWID_OPER_STRING);
 	int hwid_dfu_length = wcslen(HWID_DFU_STRING);
 
-	get_verbose_stream() << "Starting device scan" << endl;
+	BOOST_LOG_TRIVIAL(debug) << "Starting device scan" << endl;
 
 	for(int device_index = 0; ; device_index++) {
 
@@ -92,18 +95,17 @@ void win_xser_instance_manager::rescan()
 		DWORD hardware_id_type;
 		r = SetupDiGetDeviceProperty(device_info_set, &device_info_data, &DEVPKEY_Device_HardwareIds, &hardware_id_type, (PBYTE)hardware_id, 300, NULL, 0);
 		if (!r) {
-			get_verbose_stream() << "Device " << device_index << " - Cannot obtain Hardware ID" << endl;
+			BOOST_LOG_TRIVIAL(warning) << "Device " << device_index << " - Cannot obtain Hardware ID";
 			continue;
 		}
 
 		wstring hardware_id_wstr(hardware_id);
 		string hardware_id_str(hardware_id_wstr.begin(), hardware_id_wstr.end());
-		get_verbose_stream() << "Device " << device_index << " (HwID=" << hardware_id_str << ") ... ";
 
 		// Compare it against the desired hardware ID
 		if (_wcsnicmp(HWID_OPER_STRING, hardware_id, hwid_oper_length) == 0) {
 			// Hardware ID match (operational)
-			get_verbose_stream() << "Match" << endl;
+			BOOST_LOG_TRIVIAL(debug) << "Device " << device_index << " (HwID=" << hardware_id_str << ") ... Match";
 
 			// Get the serial number
 			auto_ptr<string> serial = get_serial_number(device_info_set, &device_info_data);
@@ -117,7 +119,7 @@ void win_xser_instance_manager::rescan()
 		else if (_wcsnicmp(HWID_DFU_STRING, hardware_id, hwid_dfu_length) == 0)
 		{                            
 			// Hardware ID match (operational)
-			get_verbose_stream() << "Match (DFU)" << endl;
+			BOOST_LOG_TRIVIAL(debug) << "Device " << device_index << " (HwID=" << hardware_id_str << ") ... Match (DFU)";
 
 			// Get the serial number
 			auto_ptr<string> serial = get_serial_number(device_info_set, &device_info_data);
@@ -130,7 +132,7 @@ void win_xser_instance_manager::rescan()
 		}
 		else
 			// Hardware ID mismatch
-			get_verbose_stream() << "No match" << endl;
+			BOOST_LOG_TRIVIAL(debug) << "Device " << device_index << " (HwID=" << hardware_id_str << ") ... No Match";
 
 		if (xsi != NULL) {
 			// Check if the instance is not already on the list
@@ -138,6 +140,7 @@ void win_xser_instance_manager::rescan()
 
 			if (it == xser_instances.end()) {
 				// No item in the physical location, insert it
+				BOOST_LOG_TRIVIAL(debug) << "The instance is not on the list, adding";
 				xser_instances[xsi->get_physical_location()] = xsi;
 				xsi->connect();
 			}
@@ -149,11 +152,13 @@ void win_xser_instance_manager::rescan()
 
 						// The newly created object is identical to the one already
 						// on the list. Discard the new object.
+						BOOST_LOG_TRIVIAL(debug) << "Already on the list, discarding";
 						delete xsi;
 				}
 				else {
 					// The item on the list in the physical location is not identical to
 					// the new object. Discard the old one and replace it by the new one.
+					BOOST_LOG_TRIVIAL(debug) << "Incompatible instance on the list, replacing";
 					delete it->second;
 					xser_instances[xsi->get_physical_location()] = xsi;
 					xsi->connect();
@@ -181,7 +186,7 @@ std::auto_ptr<string> win_xser_instance_manager::get_serial_number(HDEVINFO devi
 	int k = instance_id_str.rfind('\\');
 	auto_ptr<string> ret(new string(instance_id_str.substr(k + 1, instance_id_str.length() - k - 1)));
 
-	get_verbose_stream() << ">> " << *ret << endl;
+	BOOST_LOG_TRIVIAL(debug) << "Serial Number: " << *ret;
 
 	return ret;
 }
@@ -200,6 +205,8 @@ string win_xser_instance_manager::get_location(HDEVINFO device_info_set, PSP_DEV
 
 	wstring physical_loc_wstr(physical_buf);
 	string physical_loc_str(physical_loc_wstr.begin(), physical_loc_wstr.end());
+
+	BOOST_LOG_TRIVIAL(debug) << "Physical Location: " << physical_loc_str;
 
 	return physical_loc_str;
 }
