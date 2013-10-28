@@ -51,12 +51,8 @@ VOID SvcReportDebug( LPTSTR, DWORD );
 void __cdecl _tmain(int argc, TCHAR *argv[]) 
 { 
 	SetupLogging();
-	BOOST_LOG_TRIVIAL(error) << "This is an error message";
-	BOOST_LOG_TRIVIAL(debug) << "This is a debug message";
-	return;
-	BOOST_LOG_TRIVIAL(debug) << "debug test";
 
-    if( lstrcmpi( argv[1], TEXT("install")) == 0 )
+	if( lstrcmpi( argv[1], TEXT("install")) == 0 )
     {
         SvcInstall();
         return;
@@ -216,7 +212,7 @@ VOID SvcUninstall(void)
 //
 VOID WINAPI SvcMain( DWORD dwArgc, LPTSTR *lpszArgv )
 {
-	BOOST_LOG_TRIVIAL(info) << "xserserv Started!!!";
+	BOOST_LOG_TRIVIAL(info) << "xserserv Started";
 
 	
 	// Register the handler function for the service
@@ -296,7 +292,14 @@ VOID SvcInit( DWORD dwArgc, LPTSTR *lpszArgv)
 	}
 	BOOST_LOG_TRIVIAL(debug) << "Device Notification Registered";
 
-	gInstMan = &get_xser_instance_manager();
+	try {
+		gInstMan = &get_xser_instance_manager();
+	}
+	catch(runtime_error& e) {
+		BOOST_LOG_TRIVIAL(error) << "Could not get instace manager: " << e.what();
+        ReportSvcStatus(SERVICE_STOPPED, NO_ERROR, 0);
+        return;
+	}
 
     // Report running status when initialization is complete.
     ReportSvcStatus( SERVICE_RUNNING, NO_ERROR, 0 );

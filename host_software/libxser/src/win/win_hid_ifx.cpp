@@ -1,5 +1,6 @@
 #include "stdafx.h"
 #include "win_hid_ifx.h"
+#include "win_exception.h"
 #include <sstream>
 
 using namespace std;
@@ -22,9 +23,7 @@ void win_hid_ifx::open()
 	hid_handle = CreateFile(instance_path.c_str(), (GENERIC_WRITE|GENERIC_READ), FILE_SHARE_READ, NULL, OPEN_EXISTING, 0, NULL);
 
 	if (hid_handle == INVALID_HANDLE_VALUE) {
-		stringstream err;
-		err << "Failed opening the HID interface (" << GetLastError() << ")";
-		throw std::runtime_error(err.str());
+		WIN_API_THROW("Failed opening the HID interface");
 	}
 
 }
@@ -54,8 +53,9 @@ void win_hid_ifx::send_packet(uint8_t* packet, int len) const
 	DWORD num_written;
 	BOOLEAN r = WriteFile(hid_handle, message, 65, &num_written, NULL);
 
-	if (!r)
-		throw std::runtime_error("Write failed");
+	if (!r) {
+			WIN_API_THROW("Write failed");
+	}
 }
 
 

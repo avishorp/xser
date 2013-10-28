@@ -56,7 +56,7 @@ void win_xser_instance_manager::rescan()
 	device_info_set = SetupDiGetClassDevs(&GUID_DEVINTERFACE_USB_DEVICE, NULL, NULL, DIGCF_PRESENT | DIGCF_DEVICEINTERFACE);
 
 	if (device_info_set == INVALID_HANDLE_VALUE) {
-		throw runtime_error("Could not get device information set for all USB devices");
+		WIN_API_THROW("Could not get device information set for all USB devices");
 	}
 
 	// Prepare an info set of all the device. It will be used later
@@ -66,7 +66,7 @@ void win_xser_instance_manager::rescan()
 	//world_device_info_set = SetupDiGetClassDevsA(&GUID_DEVINTERFACE_HID, NULL, NULL, DIGCF_PRESENT | DIGCF_DEVICEINTERFACE);
 
 	if (world_device_info_set == INVALID_HANDLE_VALUE) {
-		throw runtime_error("Could not get all device information set");
+		WIN_API_THROW("Could not get all device information set");
 	}
 
 	// Do the actual scan
@@ -177,8 +177,9 @@ std::auto_ptr<string> win_xser_instance_manager::get_serial_number(HDEVINFO devi
 	wchar_t* instance_id = new wchar_t[instance_id_size + 1];
 
 	r = SetupDiGetDeviceInstanceId(device_info_set, device_info_data, instance_id, instance_id_size, NULL);
-	if (!r)
-		throw runtime_error("Could not get all device instance ID");
+	if (!r) {
+		WIN_API_THROW("Could not get all device instance ID");
+	}
 
 	wstring instance_id_wstr(instance_id);
 	string instance_id_str(instance_id_wstr.begin(), instance_id_wstr.end());
