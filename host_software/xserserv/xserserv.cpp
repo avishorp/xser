@@ -1,8 +1,10 @@
 #include "stdafx.h"
+#include "xserserv.h"
 #include <xser.h>
 #include <exception>
 #include <stdlib.h>
 #include <boost/log/core.hpp>
+#include <boost/log/common.hpp>
 #include <boost/log/trivial.hpp>
 #include <boost/log/expressions.hpp>
 
@@ -36,11 +38,6 @@ VOID SvcReportWarning( LPTSTR, DWORD );
 VOID SvcReportInfo( LPTSTR, DWORD );
 VOID SvcReportDebug( LPTSTR, DWORD );
 
-#define LOG_ERROR(message)   SvcReportError(message, __LINE__)
-#define LOG_WARNING(message) SvcReportWarning(message, __LINE__)
-#define LOG_INFO(message)    SvcReportInfo(message, __LINE__)
-#define LOG_DEBUG(message)   SvcReportDebug(message, __LINE__)
-
 //
 // Purpose: 
 //   Entry point for the process
@@ -53,20 +50,27 @@ VOID SvcReportDebug( LPTSTR, DWORD );
 //
 void __cdecl _tmain(int argc, TCHAR *argv[]) 
 { 
-
-    // If command-line parameter is "install", install the service. 
-    // Otherwise, the service is probably being started by the SCM.
+	SetupLogging();
+	BOOST_LOG_TRIVIAL(error) << "This is an error message";
+	BOOST_LOG_TRIVIAL(debug) << "This is a debug message";
+	return;
+	BOOST_LOG_TRIVIAL(debug) << "debug test";
 
     if( lstrcmpi( argv[1], TEXT("install")) == 0 )
     {
         SvcInstall();
         return;
     }
-
-	if (lstrcmpi(argv[1], TEXT("uninstall")) == 0)
+	else if (lstrcmpi(argv[1], TEXT("uninstall")) == 0)
 	{
 		SvcUninstall();
 		return;
+	}
+	else if (lstrcmpi(argv[1], TEXT("list")) == 0)
+	{
+	}
+	else if (lstrcmpi(argv[1], TEXT("refresh")) == 0)
+	{
 	}
 
     // TO_DO: Add any additional services for the process to this table.
@@ -81,7 +85,7 @@ void __cdecl _tmain(int argc, TCHAR *argv[])
 
     if (!StartServiceCtrlDispatcher( DispatchTable )) 
     { 
-        LOG_ERROR(TEXT("StartServiceCtrlDispatcher")); 
+        BOOST_LOG_TRIVIAL(error) << "StartServiceCtrlDispatcher"; 
     } 
 } 
 
@@ -212,7 +216,7 @@ VOID SvcUninstall(void)
 //
 VOID WINAPI SvcMain( DWORD dwArgc, LPTSTR *lpszArgv )
 {
-	LOG_INFO(TEXT("xserserv Started"));
+	BOOST_LOG_TRIVIAL(info) << "xserserv Started!!!";
 
 	
 	// Register the handler function for the service
@@ -223,7 +227,7 @@ VOID WINAPI SvcMain( DWORD dwArgc, LPTSTR *lpszArgv )
 
     if( !gSvcStatusHandle )
     { 
-        LOG_ERROR(TEXT("RegisterServiceCtrlHandler")); 
+        BOOST_LOG_TRIVIAL(error) << "RegisterServiceCtrlHandler"; 
         return; 
     } 
 
@@ -256,7 +260,7 @@ VOID WINAPI SvcMain( DWORD dwArgc, LPTSTR *lpszArgv )
 //
 VOID SvcInit( DWORD dwArgc, LPTSTR *lpszArgv)
 {
-	LOG_DEBUG(TEXT("SvcInit Entered"));
+	BOOST_LOG_TRIVIAL(debug) << "SvcInit Entered";
 
     // Create an event. The control handler function, SvcCtrlHandler,
     // signals this event when it receives the stop control code.
@@ -269,11 +273,12 @@ VOID SvcInit( DWORD dwArgc, LPTSTR *lpszArgv)
 
     if ( ghSvcStopEvent == NULL)
     {
-		LOG_ERROR(TEXT("CreateEvent"));
+		BOOST_LOG_TRIVIAL(error) << "CreateEvent";
         ReportSvcStatus( SERVICE_STOPPED, NO_ERROR, 0 );
         return;
     }
-	LOG_DEBUG(TEXT("CreateEvent succeeded"));
+
+	BOOST_LOG_TRIVIAL(debug) << "CreateEvent succeeded";
 
 	// Register to accept device change notification
 	DEV_BROADCAST_DEVICEINTERFACE NotificationFilter;
@@ -285,11 +290,11 @@ VOID SvcInit( DWORD dwArgc, LPTSTR *lpszArgv)
 
 	gDeviceNotify = RegisterDeviceNotification(gSvcStatusHandle, &NotificationFilter, DEVICE_NOTIFY_SERVICE_HANDLE);
 	if (gDeviceNotify == NULL) {
-		LOG_ERROR(TEXT("RegisterDeviceNotification"));
+		BOOST_LOG_TRIVIAL(error) << "RegisterDeviceNotification";
         ReportSvcStatus(SERVICE_STOPPED, NO_ERROR, 0);
         return;
 	}
-	LOG_DEBUG(TEXT("Device Notification Registered"));
+	BOOST_LOG_TRIVIAL(debug) << "Device Notification Registered";
 
 	gInstMan = &get_xser_instance_manager();
 
@@ -301,7 +306,7 @@ VOID SvcInit( DWORD dwArgc, LPTSTR *lpszArgv)
         // Check whether to stop the service.
 
         WaitForSingleObject(ghSvcStopEvent, INFINITE);
-		LOG_DEBUG(TEXT("Wait on stop event returned"));
+		BOOST_LOG_TRIVIAL(debug) << "Wait on stop event returned";
 
         ReportSvcStatus( SERVICE_STOPPED, NO_ERROR, 0 );
         break;
@@ -310,7 +315,7 @@ VOID SvcInit( DWORD dwArgc, LPTSTR *lpszArgv)
 	// Unregister
 	if (gDeviceNotify != NULL)
 		UnregisterDeviceNotification(gDeviceNotify);
-	LOG_DEBUG(TEXT("DeviceNotification cleaned up"));
+	BOOST_LOG_TRIVIAL(debug) << "DeviceNotification cleaned up";
 }
 
 //
@@ -385,13 +390,18 @@ DWORD WINAPI SvcCtrlHandler(DWORD dwCtrl,
          break; 
 
 	  case SERVICE_CONTROL_DEVICEEVENT:
-		  LOG_DEBUG(TEXT("SERVICE_CONTROL_DEVICEEVENT"));
+		  BOOST_LOG_TRIVIAL(debug) << "SERVICE_CONTROL_DEVICEEVENT";
 
 		  if (dwEventType == DBT_DEVICEARRIVAL) {
-			  LOG_DEBUG(TEXT("Device Arrival"));
+			  BOOST_LOG_TRIVIAL(debug) << "Device Arrival";
 
-			  gInstMan->rescan();
-			  gInstMan->update_all_adaptors();
+			  try {
+				gInstMan->rescan();
+				gInstMan->update_all_adaptors();
+			  }
+			  catch(runtime_error& e) {
+				  BOOST_LOG_TRIVIAL(error) << e.what();
+			  }
 		  }
 		  break;
  
@@ -466,3 +476,4 @@ VOID SvcReportDebug(LPTSTR message, DWORD id)
 	SvcReportEvent(message, EVENTLOG_INFORMATION_TYPE, id);
 #endif // DEBUG
 }
+
