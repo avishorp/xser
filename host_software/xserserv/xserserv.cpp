@@ -3,6 +3,7 @@
 #include <xser.h>
 #include <exception>
 #include <stdlib.h>
+#include <memory.h>
 #include <boost/log/core.hpp>
 #include <boost/log/common.hpp>
 #include <boost/log/trivial.hpp>
@@ -130,7 +131,7 @@ VOID SvcInstall()
         SVCNAME,                   // service name to display 
         SERVICE_ALL_ACCESS,        // desired access 
         SERVICE_WIN32_OWN_PROCESS, // service type 
-        SERVICE_DEMAND_START,      // start type 
+        SERVICE_AUTO_START,        // start type 
         SERVICE_ERROR_NORMAL,      // error control type 
         szPath,                    // path to service's binary 
         NULL,                      // no load ordering group 
@@ -145,8 +146,14 @@ VOID SvcInstall()
         CloseServiceHandle(schSCManager);
         return;
     }
-    else printf("Service installed successfully\n"); 
+    else {
+		printf("Service installed successfully\n"); 
+		if (StartService(schService, NULL, NULL)) {
+			printf("Service started\n");
+		}
+	}
 
+	
     CloseServiceHandle(schService); 
     CloseServiceHandle(schSCManager);
 }
@@ -175,7 +182,7 @@ VOID SvcUninstall(void)
     schService = OpenService( 
         schSCManager,       // SCM database 
         SVCNAME,          // name of service 
-        DELETE);            // need delete access 
+        SERVICE_ALL_ACCESS);  // need delete access 
  
     if (schService == NULL)
     { 
@@ -183,6 +190,27 @@ VOID SvcUninstall(void)
         CloseServiceHandle(schSCManager);
         return;
     }
+
+	// Check if the service is started
+	SERVICE_STATUS stat;
+	if (!QueryServiceStatus(schService, &stat)) {
+		printf("QueryServiceStatus failed (%d)\n", GetLastError());
+        CloseServiceHandle(schSCManager);
+        return;
+	}
+
+	if (stat.dwCurrentState != SERVICE_STOPPED) {
+		// The service is running, stop it
+		SERVICE_CONTROL_STATUS_REASON_PARAMS reason;
+		memset(&reason, 0, sizeof(SERVICE_CONTROL_STATUS_REASON_PARAMS));
+		reason.dwReason = SERVICE_STOP_REASON_FLAG_PLANNED|SERVICE_STOP_REASON_MAJOR_OTHER|SERVICE_STOP_REASON_MINOR_INSTALLATION;
+
+		if (!ControlServiceEx(schService, SERVICE_CONTROL_STOP, SERVICE_CONTROL_STATUS_REASON_INFO, &reason)) {
+			printf("ControlServiceEx failed (%d)\n", GetLastError());
+		    CloseServiceHandle(schSCManager);
+			return;
+		}
+	}
 
     // Delete the service.
  
