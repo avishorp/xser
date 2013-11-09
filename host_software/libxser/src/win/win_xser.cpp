@@ -146,6 +146,7 @@ void win_xser_instance_manager::rescan()
 			}
 			else {
 				// There is already an item in the physical location
+/*
 				if (it->second->is_valid() &&
 					((it->second->get_serial_number() == xsi->get_serial_number()) &&
 					(it->second->is_dfu_mode() == xsi->is_dfu_mode()))) {
@@ -156,13 +157,14 @@ void win_xser_instance_manager::rescan()
 						delete xsi;
 				}
 				else {
-					// The item on the list in the physical location is not identical to
+*/
+	  			// The item on the list in the physical location is not identical to
 					// the new object. Discard the old one and replace it by the new one.
 					BOOST_LOG_TRIVIAL(debug) << "Incompatible instance on the list, replacing";
 					delete it->second;
 					xser_instances[xsi->get_physical_location()] = xsi;
 					xsi->connect();
-				}      
+//				}      
 
 			}
 		}

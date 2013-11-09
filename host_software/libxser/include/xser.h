@@ -64,6 +64,8 @@ typedef std::string physical_location_t;
 
 class EXPORT xser_instance_ifx {
 public:
+	// Virtual destructor
+	virtual ~xser_instance_ifx() {};
 
 	// Determine whether the device is in DFU mode
 	virtual bool is_dfu_mode() const = 0;
@@ -105,6 +107,9 @@ public:
 
 	// Enter DFU mode
 	virtual void enter_dfu() const = 0;
+
+	// Destructor
+	virtual ~xser_instance_oper_ifx() {};
 };
 
 typedef std::vector<unsigned char> image_t;
@@ -119,6 +124,10 @@ public:
 
 	// Reset the device
 	virtual void reset_device() = 0;
+
+	// Destructor
+	virtual ~xser_instance_dfu_ifx() {};
+
 };
 
 class EXPORT xser_instance_manager_ifx {

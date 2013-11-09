@@ -4,7 +4,7 @@ class win_hid_ifx: public hid_ifx {
 
 public:
 	win_hid_ifx(wchar_t* instance_path);
-	~win_hid_ifx();
+	virtual ~win_hid_ifx();
 
 public:
 	// A factory method for creating a HID interface object from a child node of a USB device

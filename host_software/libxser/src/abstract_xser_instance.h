@@ -21,6 +21,9 @@ namespace xser {
 
 class EXPORT abstract_xser_instance_oper: public xser::xser_instance_oper_ifx {
 
+public:
+	virtual ~abstract_xser_instance_oper() {}
+
 protected:
 	// Returns an interface to an open HID device, ready to receive and transmit
 	// packets
@@ -68,6 +71,9 @@ public:
 //                  (already opened) HID interface, in platform-independent fashion
 
 class EXPORT abstract_xser_instance_dfu: public xser::xser_instance_dfu_ifx {
+
+public:
+	virtual ~abstract_xser_instance_dfu() {};
 
 protected:
 	// Returns an interface to an open HID device, ready to receive and transmit

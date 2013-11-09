@@ -46,8 +46,9 @@ win_xser_instance_oper::win_xser_instance_oper(string& serial, HDEVINFO dev_info
 	DWORD children_type;
 	WCHAR children[1000];
 	r = SetupDiGetDeviceProperty(dev_info_set, dev_info_data, &DEVPKEY_Device_Children, &children_type, (PBYTE)children, 1000, NULL, 0);
-	if (!r)
-		throw runtime_error("Cannot obtain children");
+	if (!r) {
+		WIN_API_THROW("Cannot obtain children");
+	}
 
 	int w;
 	LPCWSTR t = (LPCWSTR)children;
@@ -81,16 +82,18 @@ void win_xser_instance_oper::process_child(HDEVINFO world_device_info_set, LPCWS
 	device_info_data.cbSize = sizeof(SP_DEVINFO_DATA);
 	r = SetupDiOpenDeviceInfo(world_device_info_set, child_id, NULL, 0, &device_info_data);
 
-	if (!r) 
-		throw runtime_error("Could not find the child device");
+	if (!r)  {
+		WIN_API_THROW("Could not find the child device");
+	}
 
 	// Determine the device class
 	WCHAR class_name[300];
 	DWORD class_name_type;
 	r = SetupDiGetDeviceProperty(world_device_info_set, &device_info_data, &DEVPKEY_Device_Class, &class_name_type, (PBYTE)class_name, 300, NULL, 0);
 
-	if (!r)
-		throw runtime_error("Could not obtain the device class");
+	if (!r) {
+		WIN_API_THROW("Could not obtain the device class");
+	}
 
 	BOOST_LOG_TRIVIAL(debug) << "Class name: " << class_name;
 
@@ -101,16 +104,18 @@ void win_xser_instance_oper::process_child(HDEVINFO world_device_info_set, LPCWS
 		DWORD children_type;
 		WCHAR children[1000];
 		r = SetupDiGetDeviceProperty(world_device_info_set, &device_info_data, &DEVPKEY_Device_Children, &children_type, (PBYTE)children, 1000, NULL, 0);
-		if (!r) 
-			throw runtime_error("Could not get the child device instance");
+		if (!r)  {
+			WIN_API_THROW("Could not get the child device instance");
+		}
 
 		// Open the child device.
 		// I don't know why I have to create a new device information set to enumerate its HID
 		// interface, but that's the only way it works.
 		HDEVINFO hid_device_info_set = SetupDiGetClassDevs(&GUID_DEVINTERFACE_HID, NULL, NULL, DIGCF_PRESENT | DIGCF_DEVICEINTERFACE);
 		r = SetupDiOpenDeviceInfo(hid_device_info_set, children, NULL, 0, &device_info_data);
-		if (!r) 
-			throw runtime_error("Could not open the child HID device");
+		if (!r) {
+			WIN_API_THROW("Could not open the child HID device");
+		}
 
 		// Enumarate through all device interfaces
 		SP_DEVICE_INTERFACE_DATA device_interface_data;
@@ -156,8 +161,9 @@ void win_xser_instance_oper::process_child(HDEVINFO world_device_info_set, LPCWS
 		WCHAR desc[300];
 		DWORD desc_type;
 		r = SetupDiGetDeviceProperty(world_device_info_set, &device_info_data, &DEVPKEY_Device_FriendlyName, &desc_type, (PBYTE)desc, 300, NULL, 0);
-		if (!r)
-			throw runtime_error("Could not obtain port description");
+		if (!r) {
+			WIN_API_THROW("Could not obtain port description");
+		}
 
 		BOOST_LOG_TRIVIAL(debug) << "Port description: " << desc;
 
@@ -176,6 +182,8 @@ win_xser_instance_oper::~win_xser_instance_oper()
 {
 	if (hid_io != NULL)
 		delete hid_io;
+
+	abstract_xser_instance_oper::~abstract_xser_instance_oper();
 }
 
 void win_xser_instance_oper::enter_dfu()

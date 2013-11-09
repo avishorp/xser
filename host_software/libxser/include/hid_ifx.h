@@ -18,6 +18,9 @@ public:
 
 	// Set the allowable read timeout (in milliseconds)
 	virtual void set_timeout(int to) const = 0;
+
+	// Destructor
+	virtual ~hid_ifx() {};
 };
 
 #endif // #ifndef __HID_IFX_H__

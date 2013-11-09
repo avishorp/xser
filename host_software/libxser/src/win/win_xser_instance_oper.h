@@ -6,7 +6,7 @@ class win_xser_instance_oper: public xser::abstract_xser_instance_oper {
 public:
 	win_xser_instance_oper(std::string& serial, HDEVINFO dev_info_set, PSP_DEVINFO_DATA dev_info_data,
 		xser::physical_location_t& physical_loc_);
-	~win_xser_instance_oper();
+	virtual ~win_xser_instance_oper();
 
 
 	void process_child(HDEVINFO world_device_info_set, LPCWSTR child_id);

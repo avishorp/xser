@@ -35,6 +35,7 @@ win_xser_instance_dfu::win_xser_instance_dfu(std::string& serial, HDEVINFO dev_i
 
 win_xser_instance_dfu::~win_xser_instance_dfu()
 {
+	abstract_xser_instance_dfu::~abstract_xser_instance_dfu();
 }
 
 void win_xser_instance_dfu::invalidate()
