@@ -27,17 +27,17 @@ void do_programming(xser_instance_ifx* inst, image_t& firmware_image);
 int main(char* argv[], int argc)
 {
 
-	logging::core::get()->set_filter
-    (
-        logging::trivial::severity >= logging::trivial::warning
-    );
-
-	BOOST_LOG_TRIVIAL(debug) << "This is a test!";
+//	logging::core::get()->set_filter
+//    (
+//        logging::trivial::severity >= logging::trivial::warning
+//    );
 
 	xser_instance_manager_ifx& xim = get_xser_instance_manager();
 
 	xim.rescan();
-	//xim.update_all_adaptors();
+
+		xim.rescan();
+	xim.update_all_adaptors();
 
 	const xser_instances_t& xsers = xim.get_xser_instances();
 	vector<xser_instance_ifx*> xsers_list;

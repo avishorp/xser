@@ -25,6 +25,8 @@
       <itemPath>../usb_stack/usb_function_cdc.c</itemPath>
       <itemPath>../usb_stack/usb_function_hid.c</itemPath>
       <itemPath>../common/config.c</itemPath>
+      <itemPath>remap.c</itemPath>
+      <itemPath>hid_protocol.h</itemPath>
     </logicalFolder>
     <logicalFolder name="ExternalFiles"
                    displayName="Important Files"
