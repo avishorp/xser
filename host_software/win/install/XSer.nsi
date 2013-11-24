@@ -31,7 +31,7 @@
 ;--------------------------------
 ;Pages
 
-  !insertmacro MUI_PAGE_LICENSE "..\..\gpl-3.0.txt"
+  !insertmacro MUI_PAGE_LICENSE "..\..\..\gpl-3.0.txt"
   !insertmacro MUI_PAGE_COMPONENTS
   !insertmacro MUI_PAGE_DIRECTORY
   !insertmacro MUI_PAGE_INSTFILES
@@ -55,8 +55,8 @@ Section "XSer Service" XSerServiceSect
 
   SetOutPath "$INSTDIR"
   
-  File "..\Release\xserserv.exe"
-  File "..\Release\libxser.dll"
+  File "..\..\Release\xserserv.exe"
+  File "..\..\Release\libxser.dll"
   File "$%BOOST%\lib\boost_chrono-vc110-mt-1_54.dll"
   File "$%BOOST%\lib\boost_date_time-vc110-mt-1_54.dll"
   File "$%BOOST%\lib\boost_filesystem-vc110-mt-1_54.dll"
@@ -64,6 +64,10 @@ Section "XSer Service" XSerServiceSect
   File "$%BOOST%\lib\boost_log-vc110-mt-1_54.dll"
   File "$%BOOST%\lib\boost_system-vc110-mt-1_54.dll"
   File "$%BOOST%\lib\boost_thread-vc110-mt-1_54.dll"
+
+  File "C:\Program Files (x86)\Microsoft Visual Studio 11.0\VC\redist\x86\Microsoft.VC110.CRT\msvcr110.dll"
+  File "C:\Program Files (x86)\Microsoft Visual Studio 11.0\VC\redist\x86\Microsoft.VC110.CRT\msvcp110.dll"
+  File "C:\Program Files (x86)\Microsoft Visual Studio 11.0\VC\redist\x86\Microsoft.VC110.CRT\vccorlib110.dll"
 
 
   ;Store installation folder
@@ -80,6 +84,10 @@ Section "XSer Service" XSerServiceSect
 
   ; Install the service
   nsExec::ExecToLog '"$INSTDIR\xserserv.exe" install'  
+	Pop $0 # return value/error/timeout
+	DetailPrint ""
+	DetailPrint "       Return value: $0"
+	DetailPrint ""
 
 SectionEnd
 
@@ -106,6 +114,9 @@ SectionEnd
 
 Section "Uninstall"
 
+  ; Uninstall the service
+  nsExec::ExecToLog '"$INSTDIR\xserserv.exe" uninstall'
+  
   Delete "$INSTDIR\xserserv.exe"
   Delete "$INSTDIR\libxser.dll"
   Delete "$INSTDIR\boost_chrono-vc110-mt-1_54.dll"
