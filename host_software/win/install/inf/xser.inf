@@ -11,7 +11,7 @@ Class=Ports
 ClassGuid={4D36E978-E325-11CE-BFC1-08002BE10318} 
 Provider=%MFGNAME% 
 CatalogFile=%MFGFILENAME%.cat
-DriverVer=12/06/2012,5.1.2600.7
+DriverVer=11/27/2013,0.5
 
 [Manufacturer] 
 %MFGNAME%=DeviceList,NTamd64
