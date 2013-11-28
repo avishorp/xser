@@ -23,6 +23,9 @@
   ;Request application privileges for Windows Vista
   RequestExecutionLevel admin
 
+  ; Require Windows Vista minimum
+  ;TargetMinimalOS 6.0
+
 ;--------------------------------
 ;Interface Settings
 
@@ -55,6 +58,8 @@ Section "XSer Service" XSerServiceSect
 
   SetOutPath "$INSTDIR"
   
+  ; XSer Files
+  ; ----------
   File "..\..\Release\xserserv.exe"
   File "..\..\Release\libxser.dll"
   File "$%BOOST%\lib\boost_chrono-vc110-mt-1_54.dll"
@@ -65,10 +70,19 @@ Section "XSer Service" XSerServiceSect
   File "$%BOOST%\lib\boost_system-vc110-mt-1_54.dll"
   File "$%BOOST%\lib\boost_thread-vc110-mt-1_54.dll"
 
+  ; MSVC Runtime DLLs
+  ; -----------------
   File "C:\Program Files (x86)\Microsoft Visual Studio 11.0\VC\redist\x86\Microsoft.VC110.CRT\msvcr110.dll"
   File "C:\Program Files (x86)\Microsoft Visual Studio 11.0\VC\redist\x86\Microsoft.VC110.CRT\msvcp110.dll"
   File "C:\Program Files (x86)\Microsoft Visual Studio 11.0\VC\redist\x86\Microsoft.VC110.CRT\vccorlib110.dll"
 
+  ; Driver
+  ; ------
+  ;MkDir "$INSTDIR\driver"
+  SetOutPath "$INSTDIR\driver"
+  File "inf\xser.inf"
+  File "inf\xser.cat"
+  nsExec::ExecToLog '"$SYSDIR\pnputil.exe" /a $INSTDIR\driver\xser.inf'
 
   ;Store installation folder
   WriteRegStr HKCU "Software\Modern UI Test" "Install_Dir" $INSTDIR
@@ -84,10 +98,6 @@ Section "XSer Service" XSerServiceSect
 
   ; Install the service
   nsExec::ExecToLog '"$INSTDIR\xserserv.exe" install'  
-	Pop $0 # return value/error/timeout
-	DetailPrint ""
-	DetailPrint "       Return value: $0"
-	DetailPrint ""
 
 SectionEnd
 
@@ -126,6 +136,8 @@ Section "Uninstall"
   Delete "$INSTDIR\boost_log-vc110-mt-1_54.dll"
   Delete "$INSTDIR\boost_system-vc110-mt-1_54.dll"
   Delete "$INSTDIR\boost_thread-vc110-mt-1_54.dll"
+  Delete "$INSTDIR\driver\xser.inf"
+  Delete "$INSTDIR\driver\xser.cat"
   Delete "$INSTDIR\Uninstall.exe"
 
   RMDir "$INSTDIR"
