@@ -10,6 +10,8 @@
 ;--------------------------------
 ;General
 
+  !include x64.nsh
+
   ;Name and file
   Name "XSer"
   OutFile "XSerSetup.exe"
@@ -25,6 +27,11 @@
 
   ; Require Windows Vista minimum
   ;TargetMinimalOS 6.0
+
+;Function .onInit
+;  SetOutPath $INSTDIR
+;  LogSet on
+;FunctionEnd
 
 ;--------------------------------
 ;Interface Settings
@@ -76,22 +83,15 @@ Section "XSer Service" XSerServiceSect
   File "C:\Program Files (x86)\Microsoft Visual Studio 11.0\VC\redist\x86\Microsoft.VC110.CRT\msvcp110.dll"
   File "C:\Program Files (x86)\Microsoft Visual Studio 11.0\VC\redist\x86\Microsoft.VC110.CRT\vccorlib110.dll"
 
-  ; Driver
-  ; ------
-  ;MkDir "$INSTDIR\driver"
-  SetOutPath "$INSTDIR\driver"
-  File "inf\xser.inf"
-  File "inf\xser.cat"
-  nsExec::ExecToLog '"$SYSDIR\pnputil.exe" /a $INSTDIR\driver\xser.inf'
 
   ;Store installation folder
   WriteRegStr HKCU "Software\Modern UI Test" "Install_Dir" $INSTDIR
 
   ; Write the uninstall keys for Windows
-  WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\Example2" "DisplayName" "XSer"
-  WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\Example2" "UninstallString" '"$INSTDIR\uninstall.exe"'
-  WriteRegDWORD HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\Example2" "NoModify" 1
-  WriteRegDWORD HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\Example2" "NoRepair" 1
+  WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\XSer" "DisplayName" "XSer"
+  WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\XSer" "UninstallString" '"$INSTDIR\uninstall.exe"'
+  WriteRegDWORD HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\XSer" "NoModify" 1
+  WriteRegDWORD HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\XSer" "NoRepair" 1
 
   ;Create uninstaller
   WriteUninstaller "uninstall.exe"
@@ -106,10 +106,19 @@ SectionEnd
 ;; XSer Driver
 ;;
 Section "XSer Driver" XSerDriver
+  SetOutPath "$INSTDIR\driver"
+  File "inf\xser.inf"
+  File "inf\xser.cat"
+  MessageBox MB_OK '"$SYSDIR\PnPutil.exe" /a "$INSTDIR\driver\xser.inf"'
+${DisableX64FSRedirection}
+  nsExec::ExecToLog '"$SYSDIR\PnPutil.exe" /a "$INSTDIR\driver\xser.inf"'
+${EnableX64FSRedirection}
 SectionEnd
 
 ;--------------------------------
 ;Descriptions
+
+
 
   ;Language strings
   LangString DESC_XserServiceSect ${LANG_ENGLISH} "XSer monitor service"
