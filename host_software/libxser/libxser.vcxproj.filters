@@ -24,4 +24,7 @@
     <ClInclude Include="export.h" />
     <ClInclude Include="src\win\win_exception.h" />
   </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="libxser.rc" />
+  </ItemGroup>
 </Project>
