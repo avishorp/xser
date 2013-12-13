@@ -130,9 +130,11 @@ void win_xser_instance_manager::rescan()
 			// Create a new DFU xser instance object
  			xsi = new win_xser_instance_dfu(*serial, device_info_set, &device_info_data, phy);
 		}
-		else
+		else {
 			// Hardware ID mismatch
 			BOOST_LOG_TRIVIAL(debug) << "Device " << device_index << " (HwID=" << hardware_id_str << ") ... No Match";
+			xsi = NULL;
+		}
 
 		if (xsi != NULL) {
 			// Check if the instance is not already on the list
