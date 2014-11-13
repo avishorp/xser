@@ -8,6 +8,7 @@
     <logicalFolder name="LinkerScript"
                    displayName="Linker Files"
                    projectFiles="true">
+      <itemPath>bootloader.lkr</itemPath>
     </logicalFolder>
     <logicalFolder name="SourceFiles"
                    displayName="Source Files"
@@ -18,7 +19,6 @@
                    projectFiles="false">
       <itemPath>Makefile</itemPath>
     </logicalFolder>
-    <itemPath>BootModified.18f24k50_g.lkr</itemPath>
     <itemPath>BootPIC18NonJ.c</itemPath>
     <itemPath>BootPIC18NonJ.h</itemPath>
     <itemPath>Makefile</itemPath>
@@ -100,7 +100,7 @@
         <property key="enable-ow" value="true"/>
         <property key="extra-include-directories" value="../common"/>
         <property key="optimization-master" value="Enable all"/>
-        <property key="preprocessor-macros" value=""/>
+        <property key="preprocessor-macros" value="ID_BATCH=1;ID_NUMBER=7"/>
         <property key="procedural-abstraction-passes" value="0"/>
         <property key="storage-class" value="sca"/>
         <property key="verbose" value="false"/>
@@ -139,10 +139,10 @@
         <property key="hwtoolclock.frcindebug" value="false"/>
         <property key="memories.aux" value="false"/>
         <property key="memories.bootflash" value="false"/>
-        <property key="memories.configurationmemory" value="false"/>
+        <property key="memories.configurationmemory" value="true"/>
         <property key="memories.eeprom" value="false"/>
         <property key="memories.flashdata" value="true"/>
-        <property key="memories.id" value="false"/>
+        <property key="memories.id" value="true"/>
         <property key="memories.programmemory" value="true"/>
         <property key="memories.programmemory.end" value="0x3fff"/>
         <property key="memories.programmemory.start" value="0x0"/>

@@ -398,8 +398,15 @@ unsigned char is_force_dfu()
 }
 
 
+// ID Memory
+#if !defined(ID_BATCH) || !defined(ID_NUMBER)
+#error Must define ID_BATCH and ID_NUMBER
+#endif
 
-
+#pragma romdata idlocs = 0x200000
+const rom unsigned char USER_ID[] = { 00, ID_BATCH, 0x00, 0x00, 0x00, 0x00,
+    (ID_NUMBER & 0xf0) >> 4, ID_NUMBER & 0x0f};
+#pragma romdata
 
 
 
