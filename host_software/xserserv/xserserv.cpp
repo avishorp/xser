@@ -332,6 +332,15 @@ VOID SvcInit( DWORD dwArgc, LPTSTR *lpszArgv)
     // Report running status when initialization is complete.
     ReportSvcStatus( SERVICE_RUNNING, NO_ERROR, 0 );
 
+	BOOST_LOG_TRIVIAL(debug) << "Initial scan";
+	try {
+		gInstMan->rescan();
+		gInstMan->update_all_adaptors();
+	}
+	catch(runtime_error& e) {
+		BOOST_LOG_TRIVIAL(error) << e.what();
+	}
+
     while(1)
     {
         // Check whether to stop the service.
