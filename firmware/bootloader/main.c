@@ -405,6 +405,11 @@ unsigned char is_force_dfu()
 #pragma romdata idlocs = 0x200000
 const rom unsigned char USER_ID[] = { 00, ID_BATCH, 0x00, 0x00, 0x00, 0x00,
     (ID_NUMBER & 0xf0) >> 4, ID_NUMBER & 0x0f};
+
+// EEPROM
+// Make sure the EEPROM is cleared during bootloader programming
+#pragma romdata eedata = 0xF00000
+const rom unsigned char EEPROM[] = {0, 0, 0, 0 };
 #pragma romdata
 
 
