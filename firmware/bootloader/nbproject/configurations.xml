@@ -118,7 +118,7 @@
         <property key="cod-file" value="false"/>
         <property key="extra-lib-directories" value=""/>
         <property key="hex-output-format" value="INHX32"/>
-        <property key="map-file" value=""/>
+        <property key="map-file" value="bootloader.map"/>
       </C18-LD>
       <C18LanguageToolchain>
         <property key="extended-mode" value="true"/>
@@ -140,7 +140,7 @@
         <property key="memories.aux" value="false"/>
         <property key="memories.bootflash" value="false"/>
         <property key="memories.configurationmemory" value="true"/>
-        <property key="memories.eeprom" value="false"/>
+        <property key="memories.eeprom" value="true"/>
         <property key="memories.flashdata" value="true"/>
         <property key="memories.id" value="true"/>
         <property key="memories.programmemory" value="true"/>

@@ -87,7 +87,7 @@ bootloader to use more program memory.
 #include "BootPIC18NonJ.h"
 
 // The magic code is defined in BootPIC18NonJ.c
-extern const byte dfu_magic_code[4];
+extern rom byte dfu_magic_code[4];
 
 /** C O N F I G U R A T I O N ************************************************/
 // Note: For a complete list of the available config pragmas and their values, 
@@ -146,6 +146,7 @@ void main(void)
 {
     unsigned char t;
     unsigned char enter_dfu;
+    char r;
 
     //Need to make sure RB4 can be used as a digital input pin.
 
@@ -155,7 +156,8 @@ void main(void)
     for(t = 0; t < 4; t++) {
         EEADR = t;
         EECON1bits.RD = 1;
-        if (EEDATA != dfu_magic_code[t])
+        r = EEDATA;
+        if (r != dfu_magic_code[t])
             enter_dfu = 1;
     }
 
@@ -266,17 +268,14 @@ static void InitializeSystem(void)
     ACTCON = 0b10010000;
 
     // Initialize I/O
+#ifndef __DEBUG
     IO_Init();
+#endif
 
     // Set the LCD to display the letter "F"
     LATA = 0b10111000;
     LATB = 0;
     LATC = 0b11111110;
-
-    // For debugging - turn LCD off
-    //LATA = 0;
-    //LATB = 0;
-    //LATC = 0;
 
     InitSerialNumber();
 

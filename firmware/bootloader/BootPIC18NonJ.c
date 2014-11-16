@@ -48,8 +48,8 @@
 #include "io_cfg.h"             // I/O pin mapping
 #include "bootloader_protocol.h"
 
-#pragma rom
-const byte dfu_magic_code[4] = {0x35, 0xfa, 0x00, 0x18};
+#pragma romdata
+rom byte dfu_magic_code[4] = {0x35, 0xfa, 0x00, 0x18};
 
 #define COMMIT_KEY          0xB5
 
@@ -87,6 +87,7 @@ void bootloader_process_io(void)
         byte i;
         ROM byte* rp;
         unsigned int checksum;
+char z;
 
         // Clear the response packet
         memset(&response_packet, 0, sizeof(response_packet));
@@ -150,6 +151,7 @@ void bootloader_process_io(void)
                 case PROG_CMD_FINALIZE:
                     // Calculate 16-bit checksum
                     checksum = 0;
+                    response_packet.result = 0;
                     for(rp = (rom byte*)LOW_PROG_ADDRESS; rp <= (rom byte*)HIGH_PROG_ADDRESS; rp++)
                         checksum += (unsigned char)(*rp);
 
@@ -169,12 +171,14 @@ void bootloader_process_io(void)
                         // Write the magic code to the EEPROM
                         EECON1 = 0b00000100;
                         for(i = 0; i < 4; i++) {
+                            z = 
                             EEADR = i;
                             EEDATA = dfu_magic_code[i];
                             EECON1bits.WREN = 1;
                             commit_write(COMMIT_KEY);
                         }
                     }
+                    EECON1bits.WREN = 0;
                     break;
 
                 case PROG_CMD_RESET:
@@ -266,7 +270,8 @@ void commit_write(unsigned char key)
         }    
         Reset();
     }    
-    
+
+        EECON1bits.WR = 1;
 	_asm
 	//Now unlock sequence to set WR (make sure interrupts are disabled before executing this)
 	MOVLW 0x55
@@ -276,7 +281,6 @@ void commit_write(unsigned char key)
 	BSF EECON1, 1, 0		//Performs write
 	_endasm	
 	while(EECON1bits.WR);	//Wait until complete (relevant when programming EEPROM, not important when programming flash since processor stalls during flash program)	
-	EECON1bits.WREN = 0;  	//Good practice now to clear the WREN bit, as further protection against any accidental activation of self write/erase operations.
 }	
 
 
