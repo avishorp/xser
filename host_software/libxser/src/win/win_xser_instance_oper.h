@@ -1,5 +1,6 @@
 #include <xser.h>
 #include <string>
+#include <memory>
 
 class win_xser_instance_oper: public xser::abstract_xser_instance_oper {
 
@@ -12,7 +13,7 @@ public:
 	void process_child(HDEVINFO world_device_info_set, LPCWSTR child_id);
 
 protected:
-	virtual hid_ifx& get_hid_io() const;
+	virtual std::unique_ptr<hid_ifx> get_hid_io() const;
 
 public:
 	virtual const std::string& get_serial_number() const;
@@ -25,19 +26,14 @@ public:
 
 	virtual void enter_dfu();
 
-	virtual void connect();
-
-
 protected:
-	void disconnect();
-
 	void invalidate();
 
 
 private:
 	std::string serial_number;
 	int com_number;
-	hid_ifx* hid_io;
+	std::wstring hid_io_path;
 	bool valid;
 	xser::physical_location_t physical_loc;
 

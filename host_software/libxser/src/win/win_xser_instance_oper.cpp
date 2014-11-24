@@ -7,6 +7,7 @@
 #include "win_exception.h"
 #include <sstream>
 #include <boost/log/trivial.hpp>
+#include <memory>
 
 #include <regex>
 
@@ -22,7 +23,6 @@ win_xser_instance_oper::win_xser_instance_oper(string& serial, HDEVINFO dev_info
 	// Set default member variables
 	serial_number = serial;
 	com_number = -1;
-	hid_io = NULL;
 	valid = false;
 	physical_loc = physical_loc_;
 
@@ -65,7 +65,7 @@ win_xser_instance_oper::win_xser_instance_oper(string& serial, HDEVINFO dev_info
 
 	// Check that after all children has been processes, we have all we
 	// need
-	if ((com_number == -1) || (hid_io == NULL))
+	if ((com_number == -1) || hid_io_path.empty())
 		throw runtime_error("Incorrect USB device structure");
 
 	valid = true;
@@ -150,7 +150,7 @@ void win_xser_instance_oper::process_child(HDEVINFO world_device_info_set, LPCWS
 				}
 
 				// Create a hid_ifx object from the device path
-				hid_io = new win_hid_ifx(detail->DevicePath);
+				hid_io_path.assign(detail->DevicePath);
 
 			}
 		}
@@ -180,20 +180,14 @@ void win_xser_instance_oper::process_child(HDEVINFO world_device_info_set, LPCWS
 
 win_xser_instance_oper::~win_xser_instance_oper()
 {
-	if (hid_io != NULL)
-		delete hid_io;
-
 	abstract_xser_instance_oper::~abstract_xser_instance_oper();
 }
 
 void win_xser_instance_oper::enter_dfu()
 {
-	delete hid_io;
-	hid_io = NULL;
-	valid = false;
-
 	abstract_xser_instance_oper::enter_dfu();
-	disconnect();
+	hid_io_path.clear();
+	valid = false;
 }
 
 void win_xser_instance_oper::invalidate()
@@ -201,9 +195,9 @@ void win_xser_instance_oper::invalidate()
 	valid = false;
 }
 
-hid_ifx& win_xser_instance_oper::get_hid_io() const {
+unique_ptr<hid_ifx> win_xser_instance_oper::get_hid_io() const {
 	CHECK_VALIDITY;
-	return *hid_io; 
+	return unique_ptr<hid_ifx>(new win_hid_ifx(hid_io_path.c_str())); 
 }
 
 const string& win_xser_instance_oper::get_serial_number() const { 
@@ -222,21 +216,6 @@ const xser::physical_location_t& win_xser_instance_oper::get_physical_location()
 	return physical_loc; 
 }
 
-void win_xser_instance_oper::connect()
-{
-	CHECK_VALIDITY;
-
-	win_hid_ifx& h = dynamic_cast<win_hid_ifx&>(get_hid_io());
-	h.open();
-}
-
-
-void win_xser_instance_oper::disconnect()
-{
-	valid = false;
-	win_hid_ifx& h = dynamic_cast<win_hid_ifx&>(get_hid_io());
-	h.close();
-}
 
 
 

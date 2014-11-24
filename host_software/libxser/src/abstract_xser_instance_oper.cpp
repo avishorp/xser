@@ -16,9 +16,8 @@ void abstract_xser_instance_oper::set_com_display(int number) const {
 	CHECK_VALIDITY;
 
 	BOOST_LOG_TRIVIAL(debug) << "set_com_display started";
-
 	
-	const hid_ifx& h = get_hid_io();
+	unique_ptr<hid_ifx> h = get_hid_io();
 
 	// Create the request buffer
 	uint8_t req_buf[2];
@@ -26,7 +25,7 @@ void abstract_xser_instance_oper::set_com_display(int number) const {
 	req_buf[0] = XSER_HID_SET_NUMBER;
 	req_buf[1] = number;
 
-	h.send_packet(req_buf, sizeof(req_buf));
+	h->send_packet(req_buf, sizeof(req_buf));
 
 }
 
@@ -54,8 +53,8 @@ void abstract_xser_instance_oper::enter_dfu() const {
 	req.unlock[3] = DFU_UNLOCK_3;
 
 	// Send the request
-	const hid_ifx& h = get_hid_io();
-	h.send_packet((uint8_t*)&req, sizeof(req));
+	unique_ptr<hid_ifx> h = get_hid_io();
+	h->send_packet((uint8_t*)&req, sizeof(req));
 
 	// No response to wait for
 

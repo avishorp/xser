@@ -26,8 +26,11 @@ bool abstract_xser_instance_dfu::program_firmware(image_t& image, progress_callb
 	if (image.size() != FIRMWARE_SIZE)
 		throw new runtime_error("Incorrect firmware image size");
 
+	// Open the HID interface
+	unique_ptr<hid_ifx> hid = get_hid_io();
+
 	// Set the HID timeout to 1 sec
-	get_hid_io().set_timeout(1000);
+	hid->set_timeout(1000);
 
 	if (report_target != NULL)
 		report_target(0);
@@ -48,8 +51,8 @@ bool abstract_xser_instance_dfu::program_firmware(image_t& image, progress_callb
 			packet.setup_packet.data_low[i] = image[i + page*PROG_PAGE_SIZE];
 		}
 
-		get_hid_io().send_packet((uint8_t*)&packet, 64);
-		if (!wait_for_response_packet())
+		hid->send_packet((uint8_t*)&packet, 64);
+		if (!wait_for_response_packet(hid.get()))
 			throw runtime_error("Response packet not received");
 
 		// EXEC Packet
@@ -60,8 +63,8 @@ bool abstract_xser_instance_dfu::program_firmware(image_t& image, progress_callb
 			packet.exec_packet.data_high[i] = image[i + page*PROG_PAGE_SIZE + 32];
 		}
 
-		get_hid_io().send_packet((uint8_t*)&packet, 64);
-		if (!wait_for_response_packet())
+		hid->send_packet((uint8_t*)&packet, 64);
+		if (!wait_for_response_packet(hid.get()))
 			throw runtime_error("Response packet not received");
 
 		if (report_target != NULL)
@@ -73,9 +76,9 @@ bool abstract_xser_instance_dfu::program_firmware(image_t& image, progress_callb
 	packet.finalize_packet.command = PROG_CMD_FINALIZE;
 	packet.finalize_packet.checksum = calc_checksum((uint8_t*)image.data(), image.size());
 	packet.generic_packet.command = PROG_CMD_FINALIZE;
-	get_hid_io().send_packet((uint8_t*)&packet, 64);
+	hid->send_packet((uint8_t*)&packet, 64);
 
-	if (!wait_for_response_packet())
+	if (!wait_for_response_packet(hid.get()))
 		throw runtime_error("Response packet not received");
 
 	// Programming succeeded
@@ -101,7 +104,7 @@ void abstract_xser_instance_dfu::reset_device()
 	packet.reset_packet.unlock[2] = RESET_UNLOCK_2;
 	packet.reset_packet.unlock[3] = RESET_UNLOCK_3;
 
-	get_hid_io().send_packet((uint8_t*)&packet, 64);
+	get_hid_io()->send_packet((uint8_t*)&packet, 64);
 
 	// No response to expect ...
 }
@@ -115,8 +118,8 @@ uint16_t abstract_xser_instance_dfu::calc_checksum(uint8_t* buf, unsigned int si
 	return checksum;
 }
 
-bool abstract_xser_instance_dfu::wait_for_response_packet() const
+bool abstract_xser_instance_dfu::wait_for_response_packet(const hid_ifx* hid) const
 {
-	shared_ptr<char> r = get_hid_io().receive_packet();
+	shared_ptr<char> r = hid->receive_packet();
 	return (r.get()[1] != 0);
 }

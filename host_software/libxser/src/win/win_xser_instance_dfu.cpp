@@ -3,6 +3,7 @@
 #include <string>
 #include <sstream>
 #include <stdint.h>
+#include <memory>
 #include "win_xser_instance_dfu.h"
 #include "win_hid_ifx.h"
 #include "win_exception.h"
@@ -27,7 +28,7 @@ win_xser_instance_dfu::win_xser_instance_dfu(std::string& serial, HDEVINFO dev_i
 		WIN_API_THROW("Cannot obtain children");
 	}
 
-	hid_io = win_hid_ifx::from_child(children);
+	hid_io_path = win_hid_ifx::from_child(children);
 
 	// Make the object valid
 	valid = true;
@@ -43,28 +44,9 @@ void win_xser_instance_dfu::invalidate()
 	valid = false;
 }
 
-void win_xser_instance_dfu::connect()
-{
+std::unique_ptr<hid_ifx> win_xser_instance_dfu::get_hid_io() const { 
 	CHECK_VALIDITY;
-
-	win_hid_ifx& h = dynamic_cast<win_hid_ifx&>(get_hid_io());
-	h.open();
-	
-}
-
-void win_xser_instance_dfu::disconnect()
-{
-	win_hid_ifx& h = dynamic_cast<win_hid_ifx&>(get_hid_io());
-	h.close();
-
-	// Invalidate the object
-	valid = false;
-
-}
-
-hid_ifx& win_xser_instance_dfu::get_hid_io() const { 
-	CHECK_VALIDITY;
-	return *hid_io; 
+	return unique_ptr<hid_ifx>(new win_hid_ifx(hid_io_path.c_str())); 
 }
 
 const std::string& win_xser_instance_dfu::get_serial_number() const {
@@ -80,7 +62,6 @@ const physical_location_t& win_xser_instance_dfu::get_physical_location() const 
 void win_xser_instance_dfu::reset_device()
 {
 	abstract_xser_instance_dfu::reset_device();
-	disconnect();
 }
 
 

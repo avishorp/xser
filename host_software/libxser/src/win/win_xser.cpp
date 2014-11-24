@@ -144,7 +144,7 @@ void win_xser_instance_manager::rescan()
 				// No item in the physical location, insert it
 				BOOST_LOG_TRIVIAL(debug) << "The instance is not on the list, adding";
 				xser_instances[xsi->get_physical_location()] = xsi;
-				xsi->connect();
+//				xsi->connect();
 			}
 			else {
 				// There is already an item in the physical location
@@ -165,7 +165,7 @@ void win_xser_instance_manager::rescan()
 					BOOST_LOG_TRIVIAL(debug) << "Incompatible instance on the list, replacing";
 					delete it->second;
 					xser_instances[xsi->get_physical_location()] = xsi;
-					xsi->connect();
+//					xsi->connect();
 //				}      
 
 			}

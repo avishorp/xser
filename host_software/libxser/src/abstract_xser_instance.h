@@ -3,6 +3,7 @@
 
 #include <xser.h>
 #include <exception>
+#include <memory>
 
 #define CHECK_VALIDITY \
 	if (!is_valid()) throw new std::runtime_error("Invalid Object")
@@ -27,7 +28,7 @@ public:
 protected:
 	// Returns an interface to an open HID device, ready to receive and transmit
 	// packets
-	virtual hid_ifx& get_hid_io() const = 0;
+	virtual std::unique_ptr<hid_ifx> get_hid_io() const = 0;
 
 	// From xser_instance_ifx
 	/////////////////////////
@@ -78,7 +79,7 @@ public:
 protected:
 	// Returns an interface to an open HID device, ready to receive and transmit
 	// packets
-	virtual hid_ifx& get_hid_io() const = 0;
+	virtual std::unique_ptr<hid_ifx> get_hid_io() const = 0;
 
 	// From xser_instance_ifx
 	/////////////////////////
@@ -106,7 +107,7 @@ public:
 private:
 	uint16_t calc_checksum(uint8_t* buf, unsigned int size) const;
 
-	bool wait_for_response_packet() const;
+	bool wait_for_response_packet(const hid_ifx* hid) const;
 };
 
 

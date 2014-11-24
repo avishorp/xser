@@ -6,10 +6,11 @@
 using namespace std;
 using namespace xser;
 
-win_hid_ifx::win_hid_ifx(wchar_t* instance_path_)
+win_hid_ifx::win_hid_ifx(const wchar_t* instance_path_)
 {
 	hid_handle = INVALID_HANDLE_VALUE;
 	instance_path = instance_path_;
+	open();
 }
 
 win_hid_ifx::~win_hid_ifx()
@@ -23,7 +24,9 @@ void win_hid_ifx::open()
 	hid_handle = CreateFile(instance_path.c_str(), (GENERIC_WRITE|GENERIC_READ), FILE_SHARE_READ, NULL, OPEN_EXISTING, 0, NULL);
 
 	if (hid_handle == INVALID_HANDLE_VALUE) {
-		WIN_API_THROW("Failed opening the HID interface");
+		char* message = new char[100];
+		sprintf(message, "Failed opening the HID interface (%d)", GetLastError());
+		throw std::runtime_error(message);
 	}
 
 }
@@ -86,7 +89,7 @@ void win_hid_ifx::set_timeout(int to) const
 	SetCommTimeouts(hid_handle, &tos);
 }
 
-std::auto_ptr<hid_ifx> win_hid_ifx::from_child(LPCWSTR instance_id)
+wstring win_hid_ifx::from_child(LPCWSTR instance_id)
 {
 	// Prepare an info set of all the device. It will be used later
 	// when device children are processed
@@ -142,10 +145,7 @@ std::auto_ptr<hid_ifx> win_hid_ifx::from_child(LPCWSTR instance_id)
 				continue;
 			}
 
-			// Create a hid_ifx object from the device path
-			auto_ptr<win_hid_ifx> hid_io(new win_hid_ifx(detail->DevicePath));
-
-			return hid_io;
+			return detail->DevicePath;
 		}
 	}
 

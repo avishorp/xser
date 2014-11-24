@@ -11,7 +11,7 @@ public:
 
 
 protected:
-	virtual hid_ifx& get_hid_io() const;
+	virtual std::unique_ptr<hid_ifx> get_hid_io() const;
 
 public:
 	virtual const std::string& get_serial_number() const;
@@ -22,11 +22,7 @@ public:
 
 	virtual void reset_device();
 
-	virtual void connect();
-
 protected:
-
-	void disconnect();
 
 	void invalidate();
 
@@ -34,7 +30,7 @@ protected:
 
 private:
 	std::string serial_number;
-	std::auto_ptr<hid_ifx> hid_io;
+	std::wstring hid_io_path;
 	bool valid;
 	xser::physical_location_t physical_loc;
 };

@@ -82,9 +82,6 @@ public:
 	// Returns true if the object is valid
 	virtual bool is_valid() const = 0;
 
-	// Opens handles, devices etc. associated with the instace
-	virtual void connect() = 0;
-
 };
 
 typedef EXPORT std::map <physical_location_t, xser_instance_ifx*> xser_instances_t;
