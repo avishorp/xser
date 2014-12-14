@@ -182,6 +182,11 @@ void LCD_SetDisplayType(unsigned char type)
             LCD_SetDigit3(0b00001001);
             LCD_State = 0;
             break;
+
+        case DISP_TYPE_BAUD:
+            LCD_SetDigit12(0b01111100); // 'b'
+            LCD_SetDigit3(0);
+            break;
     }
 
     LCD_CriticalSectionEnd();

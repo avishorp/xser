@@ -55,7 +55,6 @@ void reset_device();
 
 // The value required to unlock commit_write
 #define COMMIT_KEY          0xB5
-	
 
 void main(void)
 {
