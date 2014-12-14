@@ -1,5 +1,6 @@
 //
 
+#include <GenericTypeDefs.h>
 #include "compiler.h"
 #include "lcd.h"
 #include "HardwareProfile.h"
@@ -7,6 +8,7 @@
 unsigned char LCD_DisplayType;
 unsigned short LCD_AnimDelay;
 unsigned char LCD_State;
+UINT16 Global_MS_Counter;
 
 #define ANIM_DELAY_VALUE 1000
 
@@ -82,6 +84,9 @@ void LCD_Interrupt_Handler()
             LCD_SetDigit3(t);
         }
     }
+
+    // 0.1 Millisecond Counter
+    Global_MS_Counter++;
 }
 
 void LCD_Init()
@@ -93,7 +98,12 @@ void LCD_Init()
     PR2 = CLOCK_FREQ / 4 / 16 / LCD_TOGGLE_RATE;
 
     // Timer 2 on, 1:16 prescaler, 1:1 postscaler
-    T2CON = 0b00000111;
+    // Initialize Timer 2 to tick every 0.1mS
+    // PRESCALER = 1:4 (Gives 6/4=1.5MHz)
+    // PERIOD = 25 (Gives 1.5MHz/250=60KHz)
+    // POSTSCALER = 1:6 (Gives 6KHz/6=10KHz)
+    PR2 = 25;
+    T2CON = 0b00101101;  // Prescaler=1:4, Postscaler=1:6
 
     // Enable Timer 2 Interrupt and set it
     // to high priority

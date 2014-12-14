@@ -1,4 +1,5 @@
 
+#include <GenericTypeDefs.h>
 #include "USB/usb.h"
 #include "USB/usb_function_cdc.h"
 #include "USB/usb_function_hid.h"
@@ -36,6 +37,7 @@ unsigned char HID_InDataBuffer[64];// TX_DATA_BUFFER_ADDRESS; // xser-to-Host
 
 // Prototypes
 /////////////
+void main(void);
 void ProcessIO(void);
 void SystemInit();
 void USB_SetSerialNumber();
@@ -53,8 +55,6 @@ void reset_device();
 
 // The value required to unlock commit_write
 #define COMMIT_KEY          0xB5
-	
-#pragma code
 	
 
 void main(void)
@@ -98,6 +98,7 @@ void main(void)
         }
 
         UI_Service(events);
+
     }//end while
 }//end main
 
@@ -115,6 +116,10 @@ void SystemInit()
     IO_Init();
     ANSELCbits.ANSC7 = 0; // Make the RX pin digital
     ANSELCbits.ANSC2 = 0; // Make the DSR pin digital
+
+    // Set up week pullup on RE3
+    WPUB = 0; // No pull-ups on port B
+    INTCON2bits.RBPU = 0;
 
     // Initialize the UI module & Enable its interrupts
     // (required for LCD operation)
@@ -134,7 +139,6 @@ void SystemInit()
     CDC_Init();
     // Initialize the HID handler
     HID_Init();
-
 }
 
 
@@ -952,5 +956,8 @@ void reset_device()
     Nop();
     Nop();
 }
+
+
+
 
 /** EOF main.c *************************************************/

@@ -8,6 +8,9 @@
 #ifndef LCD_H
 #define	LCD_H
 
+// Millisecond counter - counts every 1mS
+extern UINT16 Global_MS_Counter;
+
 // Display types
 #define DISP_TYPE_TEST   0   // Test pattern (all segments on)
 #define DISP_TYPE_NUMBER 1   // Decimal number between 0 to 199
