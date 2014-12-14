@@ -1,4 +1,6 @@
 #include <GenericTypeDefs.h>
+#include "HardwareProfile.h"
+#include "Compiler.h"
 #include "ui.h"
 #include "lcd.h"
 
@@ -16,13 +18,17 @@ unsigned char UI_State;
 unsigned char UI_PrevState;
 
 volatile unsigned char UI_PortNumber;
+UINT8 UI_BtnTimer;
+UINT8 UI_BtnTimerPrescalar;
 unsigned long timer;
 
 #define SEC 4000
 #define PORTNUM_TO_ACT_TIME     10*SEC
 #define ACT_TO_PORTNUM_TIME     20*SEC
 #define AUTOBAUD_PRESS_TIME     2*SEC
-
+#define BUTTON_SHORT_TIME_MIN   5
+#define BUTTON_SHORT_TIME_MAX   18
+#define BUTTON_LONG_TIME        65
 
 
 //////////// Prototypes (internal)
@@ -37,6 +43,8 @@ void UI_Init()
     UI_State = UI_STATE_UNCONF;
     UI_PrevState = UI_STATE_UNCONF;
     UI_PortNumber = NO_PORT_NUMBER;
+    UI_BtnTimer = 0;
+
 
     LCD_Init();
     LCD_SetDisplayType(DISP_TYPE_TEST);
@@ -46,6 +54,35 @@ void UI_Service(unsigned char events) {
     // Update timer
     if (timer > 0)
         timer--;
+
+    // Read the button state, detect short and long clicks
+    UI_BtnTimerPrescalar++;
+    if (UI_BtnTimerPrescalar == 0) {
+        if (PORTEbits.RE3 == 0) {
+
+            // Button pressed
+            if ((UI_BtnTimer > BUTTON_LONG_TIME) && (UI_BtnTimer != 0xff)) {
+                // Button pressed for "long" time
+                // Emit an event and set the timer to 0xff, which is used
+                // as a flag to prevent repeated events
+                events |= EVENT_BTN_LONG;
+                UI_BtnTimer = 0xff;
+            }
+            else {
+                UI_BtnTimer++;
+            }
+        }
+        else {
+            // Button not pressed
+        
+            if ((UI_BtnTimer > BUTTON_SHORT_TIME_MIN) && (UI_BtnTimer < BUTTON_SHORT_TIME_MAX)) {
+                // Short press, emit an event
+
+                events |= EVENT_BTN_SHORT;
+            }
+            UI_BtnTimer = 0;
+        }
+    }
 
     // Handle state transitions
     switch (UI_State) {
