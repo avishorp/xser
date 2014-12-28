@@ -9,7 +9,7 @@
 #pragma config CFGPLLEN = ON
 
 // The system runs on 16MHz, thus a /3 divider is selected
-#pragma config CPUDIV = CLKDIV3
+#pragma config CPUDIV = NOCLKDIV
 
 // Enable the primaty oscillator
 #pragma config PCLKEN = ON

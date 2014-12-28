@@ -8,10 +8,27 @@
 #ifndef AUTOBAUD_H
 #define	AUTOBAUD_H
 
+////////////////////////////////////////
+// Autobaud algorithm tuning parameters
+////////////////////////////////////////
+
+// The value below which pulses are ignored
+#define AUTOBAUD_NOISE_FILTER    32
+
+// The value above which pulses are ignored
+#define AUTOBAUD_TIMEOUT_FILTER  6500
+
+// Initialize the AutoBaud subsystem
 void AUTOBAUD_Init();
+
+// Start baud detection process
 void AUTOBAUD_Engage();
-void AUTOBAUD_Disgage();
-void AUTOBAUD_PinChangeInterruptHandler();
+
+// Abort baud detection process
+void AUTOBAUD_Abort();
+
+// Interrupt handler (for pin change interrupt)
+void AUTOBAUD_Interrupt_Handler();
 
 
 #endif	/* AUTOBAUD_H */

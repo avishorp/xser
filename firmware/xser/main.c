@@ -56,12 +56,20 @@ void reset_device();
 // The value required to unlock commit_write
 #define COMMIT_KEY          0xB5
 
+int main_cnt;
+static int gt = 0;
+unsigned int ptab;
+extern UINT16 AB_PulseTable[32];
+char sx[10];
+char* sxp;
+
 void main(void)
 {
     char is_configured = 0;
     long k;
     unsigned char events = 0;
-
+main_cnt = 0;
+ptab = 0;
     ClrWdt();
     SystemInit();
 
@@ -76,6 +84,7 @@ void main(void)
     while(1)
     {
         ClrWdt();
+        main_cnt++;
         
         events = 0;
         
@@ -86,6 +95,7 @@ void main(void)
             // Device is already configured
             events |= CDC_Service();
             events |= HID_Service();
+if (main_cnt == 0x3000) AUTOBAUD_Engage();
         }
         else {
             // Device is not configured
@@ -105,14 +115,21 @@ void main(void)
 
 void SystemInit()
 {
+    int delay;
+
     // Set the oscillator to 16MHz
     OSCCON = 0b01110000;
+    for(delay=0; delay < 20000; delay++);
 
     // Enable active tuning via USB clock
     ACTCON = 0b10010000;
 
     // Initialize the I/O pins
+#ifdef NO_LCD
+    IO_Init_NO_LCD();
+#else
     IO_Init();
+#endif
     ANSELCbits.ANSC7 = 0; // Make the RX pin digital
     ANSELCbits.ANSC2 = 0; // Make the DSR pin digital
 
@@ -125,6 +142,7 @@ void SystemInit()
     UI_Init();
     RCONbits.IPEN = 1;
     INTCONbits.GIEH = 1;
+    INTCONbits.PEIE = 1;
 
     // Initialize the USART
     USART_Init();
@@ -138,6 +156,8 @@ void SystemInit()
     CDC_Init();
     // Initialize the HID handler
     HID_Init();
+    // Initialize the auto-baud subsystem
+    AUTOBAUD_Init();
 }
 
 
@@ -179,6 +199,7 @@ void CDC_Init()
 
 }
 
+
 // Perform all CDC related tasks
 // Returns activity indication - bit 0 indicates RX activity, bit 1 TX activity
 unsigned char CDC_Service()
@@ -210,7 +231,7 @@ unsigned char CDC_Service()
 
     // Serial-to-Host
     /////////////////
-    if (USART_IsRxAvail()) {
+    if (/*USART_IsRxAvail()*/0) {
         // A character has been received in the
         // serial port
         if (CDC_InDataCount < CDC_DATA_IN_EP_SIZE) {
@@ -222,6 +243,24 @@ unsigned char CDC_Service()
             activity |= 0x02;
         }
     }
+else if ((gt > 2000) && (CDC_InDataCount < CDC_DATA_IN_EP_SIZE)) {
+
+    gt = 0;
+itoa(AB_PulseTable[ptab], sx);
+sxp=sx;
+while(*sxp!=0) {
+    CDC_InData[CDC_InDataPointer] = *sxp;
+    CDC_InDataPointer++;
+    CDC_InDataCount++;
+    sxp++;
+}
+CDC_InData[CDC_InDataPointer] = '\n';
+CDC_InDataPointer++;
+CDC_InDataCount++;
+ptab++;
+if(ptab >31) ptab = 0;
+}
+gt++;
 
     if (USBUSARTIsTxTrfReady())
     {
@@ -325,7 +364,7 @@ unsigned char CDC_Service()
 
 }//end ProcessIO
 
-// Handle SetLineCoding requests
+// Handle SetLineCoding  requests
 void CDC_SetLineCodingHandler(void)
 {
     DWORD_VAL dwBaud;

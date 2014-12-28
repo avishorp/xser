@@ -24,7 +24,7 @@ void LCD_SetDigit3(unsigned char segments);
 ROM unsigned char LCD_SevenSeg[] = {0x3f, 0x06, 0x5b, 0x4f, 0x66, 0x6d, 0x7d, 0x07, 0x7f, 0x6f };
 
 
-#pragma interrupt LCD_Interrupt_Handler
+#pragma interruptlow LCD_Interrupt_Handler
 void LCD_Interrupt_Handler()
 {
     unsigned char t;
@@ -106,9 +106,9 @@ void LCD_Init()
     T2CON = 0b00101101;  // Prescaler=1:4, Postscaler=1:6
 
     // Enable Timer 2 Interrupt and set it
-    // to high priority
+    // to low priority
     PIE1bits.TMR2IE = 1;
-    IPR1bits.TMR2IP = 1;
+    IPR1bits.TMR2IP = 0;
 
     // Global interrupts must be enabled
     // by the caller!

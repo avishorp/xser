@@ -34,5 +34,7 @@ void LCD_SetDisplayType(unsigned char type);
 //  DISP_TYPE_BAUD - Any non-zero value denotes activity
 void LCD_SetDisplayValue(unsigned char value);
 
+void LCD_Interrupt_Handler();
+
 #endif	/* LCD_H */
 

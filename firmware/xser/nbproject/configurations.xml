@@ -94,7 +94,7 @@
         <property key="extra-include-directories"
                   value="../usb_stack;../usb_stack/USB;../common"/>
         <property key="optimization-master" value="Enable all"/>
-        <property key="preprocessor-macros" value=""/>
+        <property key="preprocessor-macros" value="NO_LCD"/>
         <property key="procedural-abstraction-passes" value="0"/>
         <property key="storage-class" value="sca"/>
         <property key="verbose" value="false"/>

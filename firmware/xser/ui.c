@@ -129,7 +129,7 @@ void UI_Service(unsigned char events) {
         case UI_STATE_ACT:
             if (events & EVENT_BTN_LONG)
                 // Long button press, switch to Autobaud
-                UI_SwitchToAUTOBAUD();
+                //UI_SwitchToAUTOBAUD();
 
             if (events & EVENT_HIDCMD) {
                 // Port number set command has been received
@@ -152,7 +152,7 @@ void UI_Service(unsigned char events) {
         case UI_STATE_AUTOBAUD:
             if (events & EVENT_BTN_LONG) {
                 // Long button press, abort Autobaud
-                AUTOBAUD_Disgage();
+                AUTOBAUD_Abort();
 
                if (UI_PortNumber != NO_PORT_NUMBER)
                    // If a port number is configured, switch to
@@ -208,7 +208,7 @@ void UI_SwitchToAUTOBAUD()
     UI_State = UI_STATE_AUTOBAUD;
     LCD_SetDisplayType(DISP_TYPE_BAUD);
 
-    AUTOBAUD_Engage();
+    //AUTOBAUD_Engage();
 }
 
 

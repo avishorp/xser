@@ -47,6 +47,13 @@
         TRISB = 0b00000000; \
         TRISC = 0b11011100;
 
+// Initialize all but the LCD pins (leave them in tristate)
+// FOR DEBUGGING ONLY
+#define IO_Init_NO_LCD() \
+        TRISA = 0b11111111; \
+        TRISB = 0b11111111; \
+        TRISC = 0b11011101;
+
 // Device is bus powered
 #define self_power 0
 
