@@ -27,7 +27,7 @@ void AUTOBAUD_Init()
     for(AB_PulseTableIndex=0; AB_PulseTableIndex < PULSE_TABLE_LENGTH;
             AB_PulseTableIndex++)
     {
-        AB_PulseTable[AB_PulseTableIndex] = AB_PulseTableIndex;
+        AB_PulseTable[AB_PulseTableIndex] = 0;
     }
     AB_PulseTableIndex = 31;
 
@@ -69,11 +69,7 @@ void AUTOBAUD_Abort()
 void AUTOBAUD_Interrupt_Handler()
 {
     _asm
-            // Read PORTC to clear the mismatch
-            MOVF PORTC, 0, ACCESS
-
-            // Clear the interrupt flag
-            BCF INTCON, 0, ACCESS
+ 
           
             // Set the BSR to 7, to access the pulse table
             MOVLB 7
@@ -97,6 +93,12 @@ void AUTOBAUD_Interrupt_Handler()
             // Increment the table index
             DCFSNZ AB_PulseTableIndex, 1, BANKED
             BCF IOCC, 7, ACCESS
+
+            // Read PORTC to clear the mismatch
+            MOVF PORTC, 0, ACCESS
+
+            // Clear the interrupt flag
+            BCF INTCON, 0, ACCESS
 
     _endasm
 
