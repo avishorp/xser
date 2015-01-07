@@ -84,7 +84,6 @@ ptab = 0;
     while(1)
     {
         ClrWdt();
-        main_cnt++;
         
         events = 0;
         
@@ -95,7 +94,13 @@ ptab = 0;
             // Device is already configured
             events |= CDC_Service();
             events |= HID_Service();
-if (main_cnt == 0x3000) AUTOBAUD_Engage();
+            AUTOBAUD_Service();
+
+if (main_cnt < 0x3000) 
+    main_cnt++;
+else if (main_cnt == 0x3000)
+    { AUTOBAUD_Engage(); main_cnt++;}
+
         }
         else {
             // Device is not configured

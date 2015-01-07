@@ -152,7 +152,7 @@ void UI_Service(unsigned char events) {
         case UI_STATE_AUTOBAUD:
             if (events & EVENT_BTN_LONG) {
                 // Long button press, abort Autobaud
-                AUTOBAUD_Abort();
+                //AUTOBAUD_Abort();
 
                if (UI_PortNumber != NO_PORT_NUMBER)
                    // If a port number is configured, switch to

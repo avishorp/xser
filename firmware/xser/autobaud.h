@@ -27,6 +27,9 @@ void AUTOBAUD_Engage();
 // Abort baud detection process
 void AUTOBAUD_Abort();
 
+// Auto-baud main loop processing
+void AUTOBAUD_Service();
+
 // Interrupt handler (for pin change interrupt)
 void AUTOBAUD_Interrupt_Handler();
 
