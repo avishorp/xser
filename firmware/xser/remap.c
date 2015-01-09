@@ -9,6 +9,10 @@
 #include "lcd.h"
 #include "autobaud.h"
 
+// Forward from main.c
+void Low_Interrupt_Handler();
+
+
 #define REMAPPED_RESET_VECTOR_ADDRESS		0x1000
 #define REMAPPED_HIGH_INTERRUPT_VECTOR_ADDRESS	0x1008
 #define REMAPPED_LOW_INTERRUPT_VECTOR_ADDRESS	0x1018
@@ -30,6 +34,6 @@ void Remapped_High_ISR (void)
 #pragma code REMAPPED_LOW_INTERRUPT_VECTOR = REMAPPED_LOW_INTERRUPT_VECTOR_ADDRESS
 void Remapped_Low_ISR (void)
 {
-    _asm goto LCD_Interrupt_Handler _endasm
+    _asm goto Low_Interrupt_Handler _endasm
 }
 

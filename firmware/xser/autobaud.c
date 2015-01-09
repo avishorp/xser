@@ -43,6 +43,11 @@ void AUTOBAUD_Init()
     INTCON2bits.IOCIP = 1;
     INTCONbits.IOCIE = 1;
 
+    // Enable Timer 1 Interrupt and set it
+    // to low priority
+    PIE1bits.TMR1IE = 1;
+    IPR1bits.TMR1IP = 0;
+
     // Configure timer 1 to fosc/4 clock source, 1:1 prescalar,
     // 16 bit R/W operation.
     T1CON = 0b00000011;
@@ -217,9 +222,14 @@ void AUTOBAUD_Interrupt_Handler()
             CLRF TMR1H, ACCESS
             CLRF TMR1L, ACCESS
 
-            // Increment the table index
+            // Increment the table index. When it reaches zero, disable
+            // the interrupt (until data is processed)
             DCFSNZ AB_PulseTableIndex, 1, BANKED
             BCF IOCC, 7, ACCESS
+
+            // Turn on Timer 1 (in case it was turned off by the the
+            // roll-prevention interrupt)
+            BSF T1CON, 0, ACCESS
 
             // Read PORTC to clear the mismatch
             MOVF PORTC, 0, ACCESS
@@ -228,7 +238,22 @@ void AUTOBAUD_Interrupt_Handler()
             BCF INTCON, 0, ACCESS
 
     _endasm
-
-
 }
+
+// This interrupt handler kicks in when Timer 1 overflows. In such case
+// we want to stop the timer and set its value to 0xffff to prevent the
+// rolling (thus representing incorrect pulse width time)
+void AUTOBAUD_Timer1_Interrupt_Handler()
+{
+    // Clear the interrupt flaag
+    PIR1bits.TMR1IF = 0;
+
+    // Stop the timer
+    T1CONbits.TMR1ON = 0;
+
+    // Write 0xffff to its registers
+    TMR1H = 0xff;
+    TMR1L = 0xff;
+}
+
 

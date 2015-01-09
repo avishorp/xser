@@ -33,6 +33,9 @@ void AUTOBAUD_Service();
 // Interrupt handler (for pin change interrupt)
 void AUTOBAUD_Interrupt_Handler();
 
+// Interrupt handler (for Timer 1 overflow interrupt)
+void AUTOBAUD_Timer1_Interrupt_Handler();
+
 
 #endif	/* AUTOBAUD_H */
 

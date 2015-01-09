@@ -24,7 +24,6 @@ void LCD_SetDigit3(unsigned char segments);
 ROM unsigned char LCD_SevenSeg[] = {0x3f, 0x06, 0x5b, 0x4f, 0x66, 0x6d, 0x7d, 0x07, 0x7f, 0x6f };
 
 
-#pragma interruptlow LCD_Interrupt_Handler
 void LCD_Interrupt_Handler()
 {
     unsigned char t;

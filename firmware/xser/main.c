@@ -1000,6 +1000,20 @@ void reset_device()
     Nop();
 }
 
+// Low priority interrupt handler
+//
+// The low priority interrupt handling is shared between two interrupt sources:
+// Timer 1 - Used by the AUTOBAUD module
+// Timer 2 - Used by the LCD module
+#pragma interruptlow Low_Interrupt_Handler
+void Low_Interrupt_Handler()
+{
+    if (PIR1bits.TMR1IF)
+        AUTOBAUD_Timer1_Interrupt_Handler();
+    else
+        LCD_Interrupt_Handler();
+}
+
 
 
 
