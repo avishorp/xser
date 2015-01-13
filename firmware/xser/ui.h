@@ -16,6 +16,7 @@
 #define EVENT_USBCONF     0x08  // USB went into configured state
 #define EVENT_HIDCMD      0x10  // HID Command to set port number
 #define EVENT_TIMEOUT     0x80  // Timeout (internal event)
+#define EVENT_ABDONE      0x40  // AutoBaud done
 
 void UI_Init();
 void UI_Service(unsigned char events);

@@ -6,7 +6,7 @@ unsigned char USART_LB_Char;
 BOOL USART_LB_Avail;
 #endif
 
-void USART_Init()
+ void USART_Init()
 {
     // Enable asynchronous transmission, 8-bit
     // high baud rate
@@ -27,12 +27,19 @@ void USART_SetBaud(unsigned long baud)
 {
     // Calculate the divisor required for the
     // specified baud rate (page 282 in the datasheet)
-    unsigned long div = (CLOCK_FREQ/4)/baud - 1;
+    unsigned long div = (CLOCK_FREQ/4);
+    div = div/baud - 1;
 
     // Set the registers
     SPBRG = div & 0xff;
     SPBRGH = ((unsigned char)(div >> 8)) & 0xff;
 
+}
+
+void USART_SetBRG(UINT16 brg)
+{
+    SPBRG = brg;
+    SPBRGH = (brg >> 8);
 }
 
 void USART_SetEncoding(unsigned char enc)

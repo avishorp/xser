@@ -56,20 +56,12 @@ void reset_device();
 // The value required to unlock commit_write
 #define COMMIT_KEY          0xB5
 
-int main_cnt;
-static int gt = 0;
-unsigned int ptab;
-extern UINT16 AB_PulseTable[32];
-char sx[10];
-char* sxp;
-
 void main(void)
 {
     char is_configured = 0;
     long k;
     unsigned char events = 0;
-main_cnt = 0;
-ptab = 0;
+
     ClrWdt();
     SystemInit();
 
@@ -95,11 +87,6 @@ ptab = 0;
             events |= CDC_Service();
             events |= HID_Service();
             AUTOBAUD_Service();
-
-if (main_cnt < 0x3000) 
-    main_cnt++;
-else if (main_cnt == 0x3000)
-    { AUTOBAUD_Engage(); main_cnt++;}
 
         }
         else {
@@ -151,7 +138,7 @@ void SystemInit()
 
     // Initialize the USART
     USART_Init();
-    USART_SetBaud(600);
+    USART_SetBaud(2400);
     
     // Read the device's serial number from the EEPROM
     // and set it as the USB seroal number
@@ -236,7 +223,7 @@ unsigned char CDC_Service()
 
     // Serial-to-Host
     /////////////////
-    if (/*USART_IsRxAvail()*/0) {
+    if (USART_IsRxAvail()) {
         // A character has been received in the
         // serial port
         if (CDC_InDataCount < CDC_DATA_IN_EP_SIZE) {
@@ -248,24 +235,6 @@ unsigned char CDC_Service()
             activity |= 0x02;
         }
     }
-else if ((gt > 2000) && (CDC_InDataCount < CDC_DATA_IN_EP_SIZE)) {
-
-    gt = 0;
-itoa(AB_PulseTable[ptab], sx);
-sxp=sx;
-while(*sxp!=0) {
-    CDC_InData[CDC_InDataPointer] = *sxp;
-    CDC_InDataPointer++;
-    CDC_InDataCount++;
-    sxp++;
-}
-CDC_InData[CDC_InDataPointer] = '\n';
-CDC_InDataPointer++;
-CDC_InDataCount++;
-ptab++;
-if(ptab >31) ptab = 0;
-}
-gt++;
 
     if (USBUSARTIsTxTrfReady())
     {

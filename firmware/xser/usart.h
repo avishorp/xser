@@ -14,6 +14,7 @@
 // Function prototypes
 void USART_Init();
 void USART_SetBaud(unsigned long baud);
+void USART_SetBRG(UINT16 brg);
 void USART_SetEncoding(unsigned char enc);
 void USART_LB_SendByte(unsigned char b);
 unsigned char USART_LB_GetByte();

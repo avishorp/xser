@@ -2,11 +2,15 @@
 #include "HardwareProfile.h"
 #include "Compiler.h"
 #include "autobaud.h"
+#include "ui.h"
+#include "usart.h"
 
 #define PULSE_TABLE_LENGTH 32
 #define MIN_BAUD           4000  // Minimal supported baud rate
 #define MAX_BAUD           150000// Maximal supported baud rate
 #define TOLERANCE          10    // Frequency tolerance
+#define TOTAL_PULSES       512   // Number of pulses to end process
+#define ITERATIONS         16
 
 #define TIMER1_CLOCK_FREQ  8000000
 #define MIN_VALID_PULSE    (TIMER1_CLOCK_FREQ/MAX_BAUD)
@@ -22,6 +26,7 @@ UINT16 AB_Bin[BINS];
 UINT16 AB_TotalPulses;
 UINT16 AB_MatchingPulses;
 UINT16 AB_UnmatchingPulses;
+UINT8  AB_Iterations;
 
 UINT8 AB_ProcessingIndex;
 
@@ -62,7 +67,6 @@ void AUTOBAUD_Engage()
 {
     // Prepare the processing engine
     AUTOBAUD_ClearBins();
-    AB_TotalPulses = 0;
     AUTOBAUD_SetShortPulse(INFINITE);
     AB_ProcessingIndex = PULSE_TABLE_LENGTH - 2;
 
@@ -72,20 +76,19 @@ void AUTOBAUD_Engage()
     // Enable the Interrupt-on-change on the RX pin
     IOCCbits.IOCC7 = 1;
 
+    AB_Iterations = ITERATIONS;
     AB_Engaged = TRUE;
 }
 
 void AUTOBAUD_Abort()
 {
     AB_Engaged = FALSE;
+
     // Disable the Interrupt-on-change on the RX pin
-//    IOCCbits.IOCC7 = 0;
+    IOCCbits.IOCC7 = 0;
 
     // Enable the serial port
-//    RCSTA1bits.SREN = 1;
-
-    AUTOBAUD_SetShortPulse(INFINITE);
-;
+    RCSTA1bits.SPEN = 1;
 }
 
 void AUTOBAUD_ClearPulseTable()
@@ -96,7 +99,7 @@ void AUTOBAUD_ClearPulseTable()
         AB_PulseTable[AB_PulseTableIndex] = 0;
     }
     AB_PulseTableIndex = PULSE_TABLE_LENGTH - 1;
-    AB_ProcessingIndex = PULSE_TABLE_LENGTH - 1;
+    AB_ProcessingIndex = PULSE_TABLE_LENGTH - 2;
 }
 
 void AUTOBAUD_ClearBins()
@@ -105,6 +108,7 @@ void AUTOBAUD_ClearBins()
     for(k=0; k < BINS; k++)
         AB_Bin[k] = 0;
 
+    AB_TotalPulses = 0;
     AB_MatchingPulses = 0;
     AB_UnmatchingPulses = 0;
 }
@@ -130,14 +134,44 @@ void AUTOBAUD_SetShortPulse(UINT16 p)
     }
 }
 
-void AUTOBAUD_Service()
+unsigned char AUTOBAUD_Service()
 {
     UINT16 p;
     UINT8 k;
     UINT16 min, max;
 
     if (!AB_Engaged)
-        return;
+        return 0;
+
+    if (AB_TotalPulses > TOTAL_PULSES) {
+        // Enough pulses has arrived.
+        // From this point we can:
+        //  1. End the process with success
+        //  2. Retry anther cycle
+        //  3. End the process with fail
+
+        // If less than 10% of the total pulses were unmatched,
+        // the process succeeded
+        if (AB_UnmatchingPulses <= 0x70/*(TOTAL_PULSES/10)*/) {
+            AUTOBAUD_Abort();
+            USART_SetBRG(AB_ShortPulseWidth);
+            return EVENT_ABDONE;
+        }
+        else {
+            AB_Iterations--;
+            if (AB_Iterations == 0) {
+                // Iterations over, we failed
+                AUTOBAUD_Abort();
+                return EVENT_ABDONE;
+            }
+
+            // Continue with a new iteration
+            IOCCbits.IOCC7 = 0;
+            AUTOBAUD_ClearBins();
+            AUTOBAUD_SetShortPulse(INFINITE);
+            IOCCbits.IOCC7 = 1;
+        }
+    }
 
     // Check if there's any data to process. The sample buffer is filled
     // by the interrupt routine from the highest index downto 0. The first
@@ -146,14 +180,14 @@ void AUTOBAUD_Service()
     // interrupt is disabled when the index is 0.
     if (AB_ProcessingIndex <= AB_PulseTableIndex)
         // No new data to process, abort
-        return;
+        return 0;
 
     // If the processing pointer has reached 0, re-kick the data
     // acquisition interrupt
     if (AB_PulseTableIndex == 0) {
         AUTOBAUD_ClearPulseTable();
         IOCCbits.IOCC7 = 1;
-        return;
+        return 0;
     }
 
     p = AB_PulseTable[AB_ProcessingIndex];
@@ -162,7 +196,7 @@ void AUTOBAUD_Service()
     // First of all, filter out pulses that are two short (noise) or too
     // long (timeouts)
     if ((p < MIN_VALID_PULSE) || (p > MAX_VALID_PULSE))
-        return;
+        return 0;
 
     AB_TotalPulses++;
 
@@ -178,7 +212,7 @@ void AUTOBAUD_Service()
             if ((p >= min) && (p <= max)) {
                 AB_Bin[k]++;
                 AB_MatchingPulses++;
-                return;
+                return 0;
             }
             min += AB_ShortPulseMin;
             max += AB_ShortPulseMax;

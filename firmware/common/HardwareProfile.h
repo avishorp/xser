@@ -57,7 +57,7 @@
 // Device is bus powered
 #define self_power 0
 
-#define CLOCK_FREQ 16000000
+#define CLOCK_FREQ 48000000L
 #define GetSystemClock() CLOCK_FREQ   
 
 /** LCD ************************************************************/
