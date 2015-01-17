@@ -115,13 +115,6 @@ void AUTOBAUD_ClearBins()
 
 void AUTOBAUD_SetShortPulse(UINT16 p)
 {
-    UINT8 d;
-    if (p > 200)
-        d = 10;
-    else
-        d = 25;
-    d = 30;
-
     if (p == INFINITE) {
         AB_ShortPulseWidth = INFINITE;
         AB_ShortPulseMin = INFINITE;
@@ -129,8 +122,8 @@ void AUTOBAUD_SetShortPulse(UINT16 p)
     }
     else {
         AB_ShortPulseWidth = p;
-        AB_ShortPulseMin = AB_ShortPulseWidth - d;
-        AB_ShortPulseMax = AB_ShortPulseWidth + d;
+        AB_ShortPulseMin = (p*14) >> 4; // ~90%
+        AB_ShortPulseMax = (p*17) >> 4; // ~110%
     }
 }
 
