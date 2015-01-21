@@ -27,6 +27,7 @@ UINT16 AB_TotalPulses;
 UINT16 AB_MatchingPulses;
 UINT16 AB_UnmatchingPulses;
 UINT8  AB_Iterations;
+unsigned char AB_Event;
 
 UINT8 AB_ProcessingIndex;
 
@@ -127,14 +128,15 @@ void AUTOBAUD_SetShortPulse(UINT16 p)
     }
 }
 
-unsigned char AUTOBAUD_Service()
+void AUTOBAUD_Service()
 {
     UINT16 p;
     UINT8 k;
     UINT16 min, max;
 
-    if (!AB_Engaged)
-        return 0;
+    AB_Event = 0;
+    if (AB_Engaged == 0)
+        return;
 
     if (AB_TotalPulses > TOTAL_PULSES) {
         // Enough pulses has arrived.
@@ -148,14 +150,16 @@ unsigned char AUTOBAUD_Service()
         if (AB_UnmatchingPulses <= 0x70/*(TOTAL_PULSES/10)*/) {
             AUTOBAUD_Abort();
             USART_SetBRG(AB_ShortPulseWidth);
-            return EVENT_ABDONE;
+            AB_Event = EVENT_ABDONE;
+            return;
         }
         else {
             AB_Iterations--;
             if (AB_Iterations == 0) {
                 // Iterations over, we failed
                 AUTOBAUD_Abort();
-                return EVENT_ABDONE;
+                AB_Event = EVENT_ABDONE;
+                return;
             }
 
             // Continue with a new iteration
@@ -173,14 +177,14 @@ unsigned char AUTOBAUD_Service()
     // interrupt is disabled when the index is 0.
     if (AB_ProcessingIndex <= AB_PulseTableIndex)
         // No new data to process, abort
-        return 0;
+        return;
 
     // If the processing pointer has reached 0, re-kick the data
     // acquisition interrupt
     if (AB_PulseTableIndex == 0) {
         AUTOBAUD_ClearPulseTable();
         IOCCbits.IOCC7 = 1;
-        return 0;
+        return;
     }
 
     p = AB_PulseTable[AB_ProcessingIndex];
@@ -189,7 +193,7 @@ unsigned char AUTOBAUD_Service()
     // First of all, filter out pulses that are two short (noise) or too
     // long (timeouts)
     if ((p < MIN_VALID_PULSE) || (p > MAX_VALID_PULSE))
-        return 0;
+        return;
 
     AB_TotalPulses++;
 
@@ -205,7 +209,7 @@ unsigned char AUTOBAUD_Service()
             if ((p >= min) && (p <= max)) {
                 AB_Bin[k]++;
                 AB_MatchingPulses++;
-                return 0;
+                return;
             }
             min += AB_ShortPulseMin;
             max += AB_ShortPulseMax;
@@ -213,6 +217,8 @@ unsigned char AUTOBAUD_Service()
 
         AB_UnmatchingPulses++;
     }
+
+    return;
 }
 
 // AUTOBAUD Data Acquisition Interrupt

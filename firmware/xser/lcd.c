@@ -10,7 +10,7 @@ unsigned short LCD_AnimDelay;
 unsigned char LCD_State;
 UINT16 Global_MS_Counter;
 
-#define ANIM_DELAY_VALUE 1000
+#define ANIM_DELAY_VALUE 2000
 
 // Forwards
 void LCD_SetDigit12(unsigned char segments);

@@ -28,13 +28,18 @@ void AUTOBAUD_Engage();
 void AUTOBAUD_Abort();
 
 // Auto-baud main loop processing
-unsigned char AUTOBAUD_Service();
+void AUTOBAUD_Service();
 
 // Interrupt handler (for pin change interrupt)
 void AUTOBAUD_Interrupt_Handler();
 
 // Interrupt handler (for Timer 1 overflow interrupt)
 void AUTOBAUD_Timer1_Interrupt_Handler();
+
+// The event result is accessed directly as a variable
+// due to an apparent compiler bug causing the functions
+// in this module not to return values correctly
+extern unsigned char AB_Event;
 
 
 #endif	/* AUTOBAUD_H */

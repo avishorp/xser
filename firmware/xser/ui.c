@@ -9,21 +9,19 @@
 #define UI_STATE_UNCONF         0  // Unconfigured
 #define UI_STATE_NOPORTNUM      1  // No port number displayed
 #define UI_STATE_PORTNUM        3  // Port number displayed
+#define UI_STATE_PORTNUM_D      10 // Port number displayed (with delay)
 #define UI_STATE_ACT            4  // Activity indicator displayed
 #define UI_STATE_AUTOBAUD       5  // Auto baud rate detection
-
 #define NO_PORT_NUMBER          0
 
 unsigned char UI_State;
-unsigned char UI_PrevState;
-
 volatile unsigned char UI_PortNumber;
 UINT8 UI_BtnTimer;
 UINT8 UI_BtnTimerPrescalar;
 unsigned long timer;
 
-#define SEC 4000
-#define PORTNUM_TO_ACT_TIME     10*SEC
+#define SEC 16000L
+#define PORTNUM_TO_ACT_TIME     20*SEC
 #define ACT_TO_PORTNUM_TIME     20*SEC
 #define AUTOBAUD_PRESS_TIME     2*SEC
 #define BUTTON_SHORT_TIME_MIN   5
@@ -32,8 +30,10 @@ unsigned long timer;
 
 
 //////////// Prototypes (internal)
-void UI_SwitchToPORTNUM(BOOL hold);
+void UI_SwitchToPORTNUM();
+void UI_SwitchToPORTNUM_D();
 void UI_SwitchToNOPORTNUM();
+void UI_SwitchToNum();
 void UI_SwitchToACT();
 void UI_SwitchToAUTOBAUD();
 
@@ -41,10 +41,8 @@ void UI_SwitchToAUTOBAUD();
 void UI_Init()
 {
     UI_State = UI_STATE_UNCONF;
-    UI_PrevState = UI_STATE_UNCONF;
     UI_PortNumber = NO_PORT_NUMBER;
     UI_BtnTimer = 0;
-
 
     LCD_Init();
     LCD_SetDisplayType(DISP_TYPE_TEST);
@@ -55,6 +53,7 @@ void UI_Service(unsigned char events) {
     if (timer > 0)
         timer--;
 
+#ifndef __DEBUG   // Button is not working in debug mode (used for reset)
     // Read the button state, detect short and long clicks
     UI_BtnTimerPrescalar++;
     if (UI_BtnTimerPrescalar == 0) {
@@ -83,6 +82,7 @@ void UI_Service(unsigned char events) {
             UI_BtnTimer = 0;
         }
     }
+#endif // __DEBUG
 
     // Handle state transitions
     switch (UI_State) {
@@ -99,7 +99,7 @@ void UI_Service(unsigned char events) {
                 UI_SwitchToAUTOBAUD();
             else if (events & EVENT_HIDCMD) {
                 // Port number set command has been received
-                UI_SwitchToPORTNUM(1);
+                UI_SwitchToPORTNUM_D();
             }
             if (events & (EVENT_TX_ACT | EVENT_RX_ACT)) {
                 // Activity on the port, switch to activity
@@ -109,29 +109,39 @@ void UI_Service(unsigned char events) {
             break;
 
         case UI_STATE_PORTNUM:
+        case UI_STATE_PORTNUM_D:
             if (events & EVENT_BTN_LONG)
                 // Long button press, switch to Autobaud
                 UI_SwitchToAUTOBAUD();
 
-            else if (events & EVENT_TX_ACT ) {
+            else if (events & EVENT_TX_ACT) {
                 // TX Activity on the port, switch to activity
                 // indicator mode immediately
                 UI_SwitchToACT();
             }
-            if ((events & EVENT_RX_ACT) && (timer == 0)) {
-                // RX Activity on the port, switch to activity
-                // indicator mode (only after a small delay, letting the
-                // user see the port number)
-                UI_SwitchToACT();
+            if (UI_State == UI_STATE_PORTNUM) {
+                if (events & EVENT_RX_ACT)
+                    UI_SwitchToACT();
+            }
+            else {
+                // UI_STATE_PORTNUM_D
+                // On RX event, delay the ACT display so user can
+                // comfortably read the number
+                if ((events & EVENT_RX_ACT) && (timer == 0)) {
+                    // RX Activity on the port, switch to activity
+                    // indicator mode (only after a small delay, letting the
+                    // user see the port number)
+                    UI_SwitchToACT();
+                }
             }
             break;
 
         case UI_STATE_ACT:
             if (events & EVENT_BTN_LONG)
                 // Long button press, switch to Autobaud
-                //UI_SwitchToAUTOBAUD();
+                UI_SwitchToAUTOBAUD();
 
-            if (events & EVENT_HIDCMD) {
+            else if (events & EVENT_HIDCMD) {
                 // Port number set command has been received
                 UI_SwitchToPORTNUM(1);
             }
@@ -141,25 +151,17 @@ void UI_Service(unsigned char events) {
                 if ((events & (EVENT_TX_ACT | EVENT_RX_ACT)) != 0)
                     timer = ACT_TO_PORTNUM_TIME;
             }
-            else {
-               if (UI_PortNumber != NO_PORT_NUMBER)
-                    // After long inacticity, switch to port
-                    // numbwe display
-                    UI_SwitchToPORTNUM(0);
-            }
+            else
+                // Time has elapsed without activity, switch back
+                // to number display
+                UI_SwitchToNum();
             break;
 
         case UI_STATE_AUTOBAUD:
-            if (events & EVENT_BTN_LONG) {
+            if (events & (EVENT_BTN_LONG | EVENT_ABDONE))  {
                 // Long button press, abort Autobaud
-                //AUTOBAUD_Abort();
-
-               if (UI_PortNumber != NO_PORT_NUMBER)
-                   // If a port number is configured, switch to
-                   // port number display.
-                   UI_SwitchToPORTNUM(0);
-               else
-                   UI_SwitchToNOPORTNUM();
+                AUTOBAUD_Abort();
+                UI_SwitchToNum();
             }
             break;
     }
@@ -170,32 +172,38 @@ void UI_SetPortNumber(unsigned char portnum)
     UI_PortNumber = portnum;
 }
 
-void UI_SwitchToPORTNUM(BOOL hold)
+void UI_SwitchToPORTNUM()
 {
-    UI_PrevState = UI_State;
+    LCD_SetDisplayType(DISP_TYPE_NUMBER);
+    LCD_SetDisplayValue(UI_PortNumber);
+    timer = 0;
+    UI_State = UI_STATE_PORTNUM;
+}
 
-    if (hold)
-        timer = PORTNUM_TO_ACT_TIME;
-    else
-        timer = 0;
-
+void UI_SwitchToPORTNUM_D()
+{
     LCD_SetDisplayType(DISP_TYPE_NUMBER);
     LCD_SetDisplayValue(UI_PortNumber);
     timer = PORTNUM_TO_ACT_TIME;
+    UI_State = UI_STATE_PORTNUM_D;
 }
 
 void UI_SwitchToNOPORTNUM()
 {
-    UI_PrevState = UI_State;
-
     UI_State = UI_STATE_NOPORTNUM;
     LCD_SetDisplayType(DISP_TYPE_WAIT);
 }
 
+void UI_SwitchToNum()
+{
+    if (UI_PortNumber == NO_PORT_NUMBER)
+        UI_SwitchToNOPORTNUM();
+    else
+        UI_SwitchToPORTNUM();
+}
+
 void UI_SwitchToACT()
 {
-    UI_PrevState = UI_State;
-
     UI_State = UI_STATE_ACT;
     LCD_SetDisplayType(DISP_TYPE_ACT);
     timer = ACT_TO_PORTNUM_TIME;
@@ -203,12 +211,10 @@ void UI_SwitchToACT()
 
 void UI_SwitchToAUTOBAUD()
 {
-    UI_PrevState = UI_State;
-
     UI_State = UI_STATE_AUTOBAUD;
     LCD_SetDisplayType(DISP_TYPE_BAUD);
 
-    //AUTOBAUD_Engage();
+    AUTOBAUD_Engage();
 }
 
 

@@ -13,6 +13,7 @@
 #include "ui.h"
 #include "usart.h"
 #include "hid_protocol.h"
+#include "autobaud.h"
 
 
 #pragma udata
@@ -61,7 +62,10 @@ void main(void)
     char is_configured = 0;
     long k;
     unsigned char events = 0;
-
+    unsigned char e;
+#ifdef AUTOBAUD_AUTO_ENGAGE
+    UINT16 autobaud_cnt = 0;
+#endif
     ClrWdt();
     SystemInit();
 
@@ -87,6 +91,16 @@ void main(void)
             events |= CDC_Service();
             events |= HID_Service();
             AUTOBAUD_Service();
+            events = events | AB_Event;
+
+#ifdef AUTOBAUD_AUTO_ENGAGE
+            if (autobaud_cnt < 0xfff0)
+              autobaud_cnt++;
+            else if (main_cnt == 0xfff0) {
+                AUTOBAUD_Engage();
+                main_cnt = 0xffff;
+            }
+#endif
 
         }
         else {
@@ -96,6 +110,7 @@ void main(void)
                 is_configured = 1;
                 events = EVENT_USBCONF;
             }
+
         }
 
         UI_Service(events);
@@ -126,7 +141,9 @@ void SystemInit()
     ANSELCbits.ANSC2 = 0; // Make the DSR pin digital
 
     // Set up week pullup on RE3
-    WPUB = 0; // No pull-ups on port B
+    WPUB = 0; // Enable pull-ups
+    (* ((UINT8*)(0xf96))) = 0x80; // Enable pullup on RE3 (not defined by
+                                   // compiler)
     INTCON2bits.RBPU = 0;
 
     // Initialize the UI module & Enable its interrupts
@@ -211,7 +228,7 @@ unsigned char CDC_Service()
             USART_SendByte(CDC_OutData[CDC_OutDataPointer]);
             CDC_OutDataPointer++;
             CDC_OutDataCount--;
-            activity = 0x01;
+            activity = EVENT_TX_ACT;
         }
     }
     else {
@@ -232,7 +249,7 @@ unsigned char CDC_Service()
             CDC_InData[CDC_InDataPointer] = USART_GetByte();
             CDC_InDataPointer++;
             CDC_InDataCount++;
-            activity |= 0x02;
+            activity |= EVENT_RX_ACT;
         }
     }
 
