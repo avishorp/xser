@@ -35,6 +35,7 @@ UINT8 AB_ProcessingIndex;
 #pragma udata PULSE_TABLE
 UINT16 AB_PulseTable[32];
 UINT8 AB_PulseTableIndex;
+UINT8 AB_DataFlag;
 
 void AUTOBAUD_ClearPulseTable();
 void AUTOBAUD_ClearBins();
@@ -263,6 +264,9 @@ void AUTOBAUD_Interrupt_Handler()
             // Turn on Timer 1 (in case it was turned off by the the
             // roll-prevention interrupt)
             BSF T1CON, 0, ACCESS
+
+            // Set the data flag to 1
+            BSF AB_DataFlag, 0, BANKED
 
             // Read PORTC to clear the mismatch
             MOVF PORTC, 0, ACCESS

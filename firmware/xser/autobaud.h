@@ -41,6 +41,8 @@ void AUTOBAUD_Timer1_Interrupt_Handler();
 // in this module not to return values correctly
 extern unsigned char AB_Event;
 
+extern UINT8 AB_DataFlag;
+
 
 #endif	/* AUTOBAUD_H */
 

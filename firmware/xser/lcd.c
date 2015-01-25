@@ -4,6 +4,7 @@
 #include "compiler.h"
 #include "lcd.h"
 #include "HardwareProfile.h"
+#include "autobaud.h"
 
 unsigned char LCD_DisplayType;
 unsigned short LCD_AnimDelay;
@@ -81,6 +82,17 @@ void LCD_Interrupt_Handler()
                 t |= 0b000001000; // Turn on segment D
 
             LCD_SetDigit3(t);
+        }
+        else if (LCD_DisplayType == DISP_TYPE_BAUD) {
+            if (AB_DataFlag != 0) {
+                LCD_State <<= 1;
+                if (LCD_State == 0x40)
+                    LCD_State = 1;
+
+                LCD_SetDigit3(LCD_State);
+                AB_DataFlag = 0;
+            }
+
         }
     }
 
@@ -184,7 +196,8 @@ void LCD_SetDisplayType(unsigned char type)
 
         case DISP_TYPE_BAUD:
             LCD_SetDigit12(0b01111100); // 'b'
-            LCD_SetDigit3(0);
+            LCD_SetDigit3(1);
+            LCD_State = 1;
             break;
     }
 
