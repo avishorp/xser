@@ -14,7 +14,7 @@
 #include "usart.h"
 #include "hid_protocol.h"
 #include "autobaud.h"
-
+#include "version.h"
 
 #pragma udata
 
@@ -401,8 +401,8 @@ unsigned char HID_Service()
         switch (HID_OutDataBuffer.generic_packet.command) {
 
         case XSER_HID_GET_VERSION:
-            HID_InDataBuffer[0] = 22;
-            HID_InDataBuffer[1] = 33;
+            HID_InDataBuffer[0] = VERSION_MAJOR;
+            HID_InDataBuffer[1] = VERSION_MINOR;
             break;
 
         case XSER_HID_SET_NUMBER:
