@@ -1,4 +1,5 @@
 
+#include <GenericTypeDefs.h>
 #include "USB/usb.h"
 #include "USB/usb_function_cdc.h"
 #include "USB/usb_function_hid.h"
@@ -12,6 +13,7 @@
 #include "ui.h"
 #include "usart.h"
 #include "hid_protocol.h"
+#include "autobaud.h"
 
 
 #pragma udata
@@ -36,6 +38,7 @@ unsigned char HID_InDataBuffer[64];// TX_DATA_BUFFER_ADDRESS; // xser-to-Host
 
 // Prototypes
 /////////////
+void main(void);
 void ProcessIO(void);
 void SystemInit();
 void USB_SetSerialNumber();
@@ -53,16 +56,16 @@ void reset_device();
 
 // The value required to unlock commit_write
 #define COMMIT_KEY          0xB5
-	
-#pragma code
-	
 
 void main(void)
 {
     char is_configured = 0;
     long k;
     unsigned char events = 0;
-
+    unsigned char e;
+#ifdef AUTOBAUD_AUTO_ENGAGE
+    UINT16 autobaud_cnt = 0;
+#endif
     ClrWdt();
     SystemInit();
 
@@ -87,6 +90,18 @@ void main(void)
             // Device is already configured
             events |= CDC_Service();
             events |= HID_Service();
+            AUTOBAUD_Service();
+            events = events | AB_Event;
+
+#ifdef AUTOBAUD_AUTO_ENGAGE
+            if (autobaud_cnt < 0xfff0)
+              autobaud_cnt++;
+            else if (main_cnt == 0xfff0) {
+                AUTOBAUD_Engage();
+                main_cnt = 0xffff;
+            }
+#endif
+
         }
         else {
             // Device is not configured
@@ -95,9 +110,11 @@ void main(void)
                 is_configured = 1;
                 events = EVENT_USBCONF;
             }
+
         }
 
         UI_Service(events);
+
     }//end while
 }//end main
 
@@ -105,26 +122,40 @@ void main(void)
 
 void SystemInit()
 {
+    int delay;
+
     // Set the oscillator to 16MHz
     OSCCON = 0b01110000;
+    for(delay=0; delay < 20000; delay++);
 
     // Enable active tuning via USB clock
     ACTCON = 0b10010000;
 
     // Initialize the I/O pins
+#ifdef NO_LCD
+    IO_Init_NO_LCD();
+#else
     IO_Init();
+#endif
     ANSELCbits.ANSC7 = 0; // Make the RX pin digital
     ANSELCbits.ANSC2 = 0; // Make the DSR pin digital
+
+    // Set up week pullup on RE3
+    WPUB = 0; // Enable pull-ups
+    (* ((UINT8*)(0xf96))) = 0x80; // Enable pullup on RE3 (not defined by
+                                   // compiler)
+    INTCON2bits.RBPU = 0;
 
     // Initialize the UI module & Enable its interrupts
     // (required for LCD operation)
     UI_Init();
     RCONbits.IPEN = 1;
     INTCONbits.GIEH = 1;
+    INTCONbits.PEIE = 1;
 
     // Initialize the USART
     USART_Init();
-    USART_SetBaud(600);
+    USART_SetBaud(2400);
     
     // Read the device's serial number from the EEPROM
     // and set it as the USB seroal number
@@ -134,7 +165,8 @@ void SystemInit()
     CDC_Init();
     // Initialize the HID handler
     HID_Init();
-
+    // Initialize the auto-baud subsystem
+    AUTOBAUD_Init();
 }
 
 
@@ -176,6 +208,7 @@ void CDC_Init()
 
 }
 
+
 // Perform all CDC related tasks
 // Returns activity indication - bit 0 indicates RX activity, bit 1 TX activity
 unsigned char CDC_Service()
@@ -195,7 +228,7 @@ unsigned char CDC_Service()
             USART_SendByte(CDC_OutData[CDC_OutDataPointer]);
             CDC_OutDataPointer++;
             CDC_OutDataCount--;
-            activity = 0x01;
+            activity = EVENT_TX_ACT;
         }
     }
     else {
@@ -216,7 +249,7 @@ unsigned char CDC_Service()
             CDC_InData[CDC_InDataPointer] = USART_GetByte();
             CDC_InDataPointer++;
             CDC_InDataCount++;
-            activity |= 0x02;
+            activity |= EVENT_RX_ACT;
         }
     }
 
@@ -322,7 +355,7 @@ unsigned char CDC_Service()
 
 }//end ProcessIO
 
-// Handle SetLineCoding requests
+// Handle SetLineCoding  requests
 void CDC_SetLineCodingHandler(void)
 {
     DWORD_VAL dwBaud;
@@ -952,5 +985,22 @@ void reset_device()
     Nop();
     Nop();
 }
+
+// Low priority interrupt handler
+//
+// The low priority interrupt handling is shared between two interrupt sources:
+// Timer 1 - Used by the AUTOBAUD module
+// Timer 2 - Used by the LCD module
+#pragma interruptlow Low_Interrupt_Handler
+void Low_Interrupt_Handler()
+{
+    if (PIR1bits.TMR1IF)
+        AUTOBAUD_Timer1_Interrupt_Handler();
+    else
+        LCD_Interrupt_Handler();
+}
+
+
+
 
 /** EOF main.c *************************************************/

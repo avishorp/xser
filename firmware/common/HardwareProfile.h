@@ -47,10 +47,17 @@
         TRISB = 0b00000000; \
         TRISC = 0b11011100;
 
+// Initialize all but the LCD pins (leave them in tristate)
+// FOR DEBUGGING ONLY
+#define IO_Init_NO_LCD() \
+        TRISA = 0b11111111; \
+        TRISB = 0b11111111; \
+        TRISC = 0b11011101;
+
 // Device is bus powered
 #define self_power 0
 
-#define CLOCK_FREQ 16000000
+#define CLOCK_FREQ 48000000L
 #define GetSystemClock() CLOCK_FREQ   
 
 /** LCD ************************************************************/

@@ -8,6 +8,9 @@
 #ifndef LCD_H
 #define	LCD_H
 
+// Millisecond counter - counts every 1mS
+extern UINT16 Global_MS_Counter;
+
 // Display types
 #define DISP_TYPE_TEST   0   // Test pattern (all segments on)
 #define DISP_TYPE_NUMBER 1   // Decimal number between 0 to 199
@@ -30,6 +33,8 @@ void LCD_SetDisplayType(unsigned char type);
 //                  TX and RX activity
 //  DISP_TYPE_BAUD - Any non-zero value denotes activity
 void LCD_SetDisplayValue(unsigned char value);
+
+void LCD_Interrupt_Handler();
 
 #endif	/* LCD_H */
 

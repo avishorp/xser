@@ -1,14 +1,17 @@
 //
 
+#include <GenericTypeDefs.h>
 #include "compiler.h"
 #include "lcd.h"
 #include "HardwareProfile.h"
+#include "autobaud.h"
 
 unsigned char LCD_DisplayType;
 unsigned short LCD_AnimDelay;
 unsigned char LCD_State;
+UINT16 Global_MS_Counter;
 
-#define ANIM_DELAY_VALUE 1000
+#define ANIM_DELAY_VALUE 2000
 
 // Forwards
 void LCD_SetDigit12(unsigned char segments);
@@ -22,7 +25,6 @@ void LCD_SetDigit3(unsigned char segments);
 ROM unsigned char LCD_SevenSeg[] = {0x3f, 0x06, 0x5b, 0x4f, 0x66, 0x6d, 0x7d, 0x07, 0x7f, 0x6f };
 
 
-#pragma interrupt LCD_Interrupt_Handler
 void LCD_Interrupt_Handler()
 {
     unsigned char t;
@@ -81,7 +83,21 @@ void LCD_Interrupt_Handler()
 
             LCD_SetDigit3(t);
         }
+        else if (LCD_DisplayType == DISP_TYPE_BAUD) {
+            if (AB_DataFlag != 0) {
+                LCD_State <<= 1;
+                if (LCD_State == 0x40)
+                    LCD_State = 1;
+
+                LCD_SetDigit3(LCD_State);
+                AB_DataFlag = 0;
+            }
+
+        }
     }
+
+    // 0.1 Millisecond Counter
+    Global_MS_Counter++;
 }
 
 void LCD_Init()
@@ -93,12 +109,17 @@ void LCD_Init()
     PR2 = CLOCK_FREQ / 4 / 16 / LCD_TOGGLE_RATE;
 
     // Timer 2 on, 1:16 prescaler, 1:1 postscaler
-    T2CON = 0b00000111;
+    // Initialize Timer 2 to tick every 0.1mS
+    // PRESCALER = 1:4 (Gives 6/4=1.5MHz)
+    // PERIOD = 25 (Gives 1.5MHz/250=60KHz)
+    // POSTSCALER = 1:6 (Gives 6KHz/6=10KHz)
+    PR2 = 25;
+    T2CON = 0b00101101;  // Prescaler=1:4, Postscaler=1:6
 
     // Enable Timer 2 Interrupt and set it
-    // to high priority
+    // to low priority
     PIE1bits.TMR2IE = 1;
-    IPR1bits.TMR2IP = 1;
+    IPR1bits.TMR2IP = 0;
 
     // Global interrupts must be enabled
     // by the caller!
@@ -171,6 +192,12 @@ void LCD_SetDisplayType(unsigned char type)
             LCD_SetDigit12(0b01110111); // 'A'
             LCD_SetDigit3(0b00001001);
             LCD_State = 0;
+            break;
+
+        case DISP_TYPE_BAUD:
+            LCD_SetDigit12(0b01111100); // 'b'
+            LCD_SetDigit3(1);
+            LCD_State = 1;
             break;
     }
 
