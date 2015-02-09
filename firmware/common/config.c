@@ -41,3 +41,6 @@
 
 // Protect the configuration bits
 #pragma config WRTC = ON
+
+// Boot Block Write Protect (Boot block (0000-7FFh) is write-protected)
+#pragma config WRTB = ON        
