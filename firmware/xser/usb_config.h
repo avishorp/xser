@@ -132,8 +132,8 @@
 //1 = active state logic level is Vdd
 //0 = active state logic level is Vss
 #define USB_CDC_CTS_ACTIVE_LEVEL    0
-#define USB_CDC_RTS_ACTIVE_LEVEL    0
-#define USB_CDC_DSR_ACTIVE_LEVEL    0
+#define USB_CDC_RTS_ACTIVE_LEVEL    1
+#define USB_CDC_DSR_ACTIVE_LEVEL    1
 #define USB_CDC_DTR_ACTIVE_LEVEL    0                                      
 
 //#define USB_CDC_SUPPORT_ABSTRACT_CONTROL_MANAGEMENT_CAPABILITIES_D2 //Send_Break command
